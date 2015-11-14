@@ -33,8 +33,12 @@ void CameraCalibrator::Calibrate()
 		}
 		std::vector<cv::Mat> rvecs;
 		std::vector<cv::Mat> tvecs;
+		m_intrinsic.cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
+		m_intrinsic.distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
 		cv::calibrateCamera(m_objectPoints, m_capturedPoints, m_imgSize, m_intrinsic.cameraMatrix,
-			m_intrinsic.distCoeffs, rvecs, tvecs);
+			m_intrinsic.distCoeffs, rvecs, tvecs, CV_CALIB_RATIONAL_MODEL);
+		m_intrinsic.cameraMatrix = 
+			cv::getOptimalNewCameraMatrix(m_intrinsic.cameraMatrix, m_intrinsic.distCoeffs, m_imgSize, 0);
 		m_progress.store(100);
 	});
 	
@@ -62,14 +66,19 @@ bool CameraCalibrator::GetIntrinsic(CameraIntrinsic &out)
 		return false;
 }
 
-bool CameraCalibrator::CalcExtrinsic(CameraExtrinsic &out)
+bool CameraCalibrator::CalcExtrinsic(cv::Mat &out)
 {
 	if (m_progress.load() == 100) {
 		std::vector<cv::Point2f> corners;
 		bool found = m_checkboard->GetCheckboard(corners);
 		if (!found) return false;
+		cv::Mat rvec;
+		cv::Mat tvec;
 		cv::solvePnP(m_objectPoints[0], corners, m_intrinsic.cameraMatrix, m_intrinsic.distCoeffs,
-			out.rvec, out.tvec);
+			rvec, tvec);
+		cv::Mat rmat;
+		cv::Rodrigues(rvec, rmat);
+		cv::hconcat(rmat, tvec, out);
 		return true;
 	}
 	else

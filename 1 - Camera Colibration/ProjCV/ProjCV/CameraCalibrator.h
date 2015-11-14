@@ -23,10 +23,10 @@ public:
 	void TerminateCalibration();
 	int GetProgress();
 	bool GetIntrinsic(CameraIntrinsic &out);
-	bool CalcExtrinsic(CameraExtrinsic &out);
+	bool CalcExtrinsic(cv::Mat &out);
 
-	static const int FRAMES_TO_CAPTURE = 12;
-	static const int CAPTURE_DELAY_IN_MS = 500;
+	static const int FRAMES_TO_CAPTURE = 36;
+	static const int CAPTURE_DELAY_IN_MS = 1000;
 private:
 	cv::Size m_imgSize;
 	std::atomic<int> m_progress;
