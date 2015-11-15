@@ -31,12 +31,10 @@ void CameraCalibrator::Calibrate()
 				boost::this_thread::sleep(boost::posix_time::milliseconds(CAPTURE_DELAY_IN_MS));
 			}	
 		}
-		std::vector<cv::Mat> rvecs;
-		std::vector<cv::Mat> tvecs;
 		m_intrinsic.cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
 		m_intrinsic.distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
 		cv::calibrateCamera(m_objectPoints, m_capturedPoints, m_imgSize, m_intrinsic.cameraMatrix,
-			m_intrinsic.distCoeffs, rvecs, tvecs, CV_CALIB_RATIONAL_MODEL);
+			m_intrinsic.distCoeffs, cv::noArray(), cv::noArray(), CV_CALIB_RATIONAL_MODEL);
 		m_intrinsic.cameraMatrix = 
 			cv::getOptimalNewCameraMatrix(m_intrinsic.cameraMatrix, m_intrinsic.distCoeffs, m_imgSize, 0);
 		m_progress.store(100);

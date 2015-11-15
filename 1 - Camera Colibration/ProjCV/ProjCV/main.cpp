@@ -95,8 +95,13 @@ int main(int argc, char **argv) {
 			msg << "Camera calibration. Show checkboard to the camera.";
 		}
 		else if (progress < 100) {
-			std::strstream msgstr;
-			msg << "Nice! " << progress << "% of calibration complete. Keep going.";
+			if (progress == (CameraCalibrator::FRAMES_TO_CAPTURE * 100) 
+				/ (CameraCalibrator::FRAMES_TO_CAPTURE + 1)) {
+				msg << "Calibrating... Wait a bit";
+			}
+			else {
+				msg << "Nice! " << progress << "% of frames captured. Keep going.";
+			}
 			std::vector<cv::Point2f> c;
 			bool found = chk.GetCheckboard(c);
 			cv::drawChessboardCorners(frame, cv::Size(6, 9), c, found);
@@ -104,7 +109,6 @@ int main(int argc, char **argv) {
 		else {
 			CameraIntrinsic intr;
 			calib.GetIntrinsic(intr);
-			std::strstream msgstr;
 			msg << "Calibration complete. Have fun with the cube!";
 			if (!undistortionActive)
 				camStatus << "[DISTORTED] ";

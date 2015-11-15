@@ -23,7 +23,6 @@ void CheckboardThread::Run()
 			new boost::thread([this]() {
 			while (m_isRunning.load()) {
 				UpdateCheckboard();
-				boost::this_thread::sleep(boost::posix_time::milliseconds(1000 / 60));
 			}
 		});
 	}
@@ -42,7 +41,7 @@ void CheckboardThread::Stop()
 void CheckboardThread::UpdateCheckboard()
 {
 	cv::Mat frame = m_cam->GetFrame();
-	std::vector<cv::Point2f> tmp;
+	std::vector<cv::Point2f> tmp(POINTS_PER_COL * POINTS_PER_ROW);
 	bool found = cv::findChessboardCorners(frame,
 		cv::Size(POINTS_PER_ROW, POINTS_PER_COL), tmp,
 		CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FAST_CHECK | CV_CALIB_CB_NORMALIZE_IMAGE | CV_CALIB_CB_FILTER_QUADS);
