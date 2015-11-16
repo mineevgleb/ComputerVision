@@ -47,13 +47,13 @@ void DrawCube(cv::Mat &frame, const cv::Mat & translationMatrix, const cv::Point
 	for (int i = 0; i < 8; ++i)
 		cubeOnScreen[i] = TranslatePointToScreen(cube[i], translationMatrix);
 	for (int i = 0; i < 4; ++i) {
-		cv::line(frame, cubeOnScreen[i], cubeOnScreen[(i + 1) % 4], cv::Scalar(0, 200, 255, 125), 2);
+		cv::line(frame, cubeOnScreen[i], cubeOnScreen[(i + 1) % 4], cv::Scalar(13, 213, 252, 255), 5);
 	}
 	for (int i = 0; i < 4; ++i) {
-		cv::line(frame, cubeOnScreen[i + 4], cubeOnScreen[(i + 1) % 4 + 4], cv::Scalar(0, 200, 255, 255), 2);
+		cv::line(frame, cubeOnScreen[i + 4], cubeOnScreen[(i + 1) % 4 + 4], cv::Scalar(13, 213, 252, 255), 5);
 	}
 	for (int i = 0; i < 4; ++i) {
-		cv::line(frame, cubeOnScreen[i], cubeOnScreen[i + 4], cv::Scalar(0, 200, 255, 255), 2);
+		cv::line(frame, cubeOnScreen[i], cubeOnScreen[i + 4], cv::Scalar(13, 213, 252, 255), 5);
 	}
 }
 
@@ -87,7 +87,9 @@ int main(int argc, char **argv) {
 		cv::Mat frame = cam.GetFrame().clone();
 		int progress = calib.GetProgress();
 		std::strstream msg;
+		std::strstream screenshotMsg;
 		std::strstream camStatus;
+		bool takeScreenshot = false;
 		if (isMirrored) {
 			camStatus << "[MIRRORED] ";
 		}
@@ -122,6 +124,13 @@ int main(int argc, char **argv) {
 				cv::Mat tansitionMatrix = intr.cameraMatrix * worldMatrix;
 				DrawAxis(frame, tansitionMatrix, 5);
 				DrawCube(frame, tansitionMatrix, cv::Point3f(0, 0, 0), 2);
+				screenshotMsg << "Press SPACEBAR to take a screenshot.";
+
+				int keyPress = cv::waitKey(30);
+				if (keyPress == 32) {
+					takeScreenshot = true;
+				}
+
 			}
 		}
 		if (isMirrored) {
@@ -130,11 +139,23 @@ int main(int argc, char **argv) {
 			frame = flip;
 		}
 		msg << std::ends;
+		screenshotMsg << std::ends;
 		camStatus << std::ends;
 		ShowMessage(frame, msg.str(), cv::Point(10, 20));
 		ShowMessage(frame, camStatus.str(), cv::Point(10, 40));
+		ShowMessage(frame, screenshotMsg.str(), cv::Point(10, 60));
 		imshow(windowName, frame);
 		int key = cv::waitKey(30);
+		if (takeScreenshot) {
+			time_t seconds;
+			time(&seconds);
+			std::cout << seconds << std::endl;
+			std::stringstream ss;
+			ss << seconds;
+			std::string ts = ss.str();
+			cv::imwrite(ts + ".jpg", frame);
+
+		}
 		if (key == 27) break;
 		if (key == 100) undistortionActive = !undistortionActive;
 		if (key == 109) isMirrored = !isMirrored;
