@@ -4,6 +4,7 @@
 #include <strstream>
 #include <vector>
 #include <ctime>
+#include <boost\filesystem.hpp>
 #include "CameraThread.h"
 #include "CheckboardThread.h"
 #include "CameraCalibrator.h"
@@ -31,7 +32,7 @@ cv::Point2f TranslatePointToScreen(const cv::Point3f &pt, const cv::Mat &transla
 		onscreenMat.at<double>(1) / onscreenMat.at<double>(2));
 }
 
-void DrawCube(cv::Mat &frame, const cv::Mat & translationMatrix, const cv::Point3f &origin, double edgeSize) 
+void DrawCube(cv::Mat &frame, const cv::Mat & translationMatrix, const cv::Point3f &origin, float edgeSize) 
 {
 	cv::Point3f cube[8];
 	for (int i = 0; i < 8; i++)
@@ -57,7 +58,7 @@ void DrawCube(cv::Mat &frame, const cv::Mat & translationMatrix, const cv::Point
 	}
 }
 
-void DrawAxis(cv::Mat &frame, const cv::Mat & translationMatrix, double len)
+void DrawAxis(cv::Mat &frame, const cv::Mat & translationMatrix, float len)
 {
 	cv::Point3f axis[4];
 	for (int i = 0; i < 4; i++)
@@ -82,24 +83,40 @@ int main(int argc, char **argv) {
 	cv::namedWindow(windowName);
 	bool undistortionActive = true;
 	bool isMirrored = true;
+	bool takeScreenshot = false;
 	for (;;)
 	{
 		cv::Mat frame = cam.GetFrame().clone();
+		if (takeScreenshot) {
+			time_t seconds;
+			time(&seconds);
+			tm *t = localtime(&seconds);
+			t->tm_year += 1900;
+			std::cout << "Screen captured: " << 
+				t->tm_mday << "." << t->tm_mon << "." << t->tm_year << " "
+				<< t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << std::endl;
+			std::stringstream screenname;
+			boost::filesystem::create_directory("Screens");
+			screenname << "Screens\\" << t->tm_mday << "." << t->tm_mon << "." << t->tm_year << " "
+				<< t->tm_hour << "-" << t->tm_min << "-" << t->tm_sec << ".jpg";
+			cv::imwrite(screenname.str(), frame);
+			takeScreenshot = false;
+		}
 		int progress = calib.GetProgress();
 		std::strstream msg;
-		std::strstream screenshotMsg;
+		std::strstream useInfo;
 		std::strstream camStatus;
-		bool takeScreenshot = false;
 		if (isMirrored) {
 			camStatus << "[MIRRORED] ";
 		}
+		useInfo << "[esc] - exit, [m] - mirror, [s] - screenshot";
 		if (progress == 0) {
 			msg << "Camera calibration. Show checkboard to the camera.";
 		}
 		else if (progress < 100) {
 			if (progress == (CameraCalibrator::FRAMES_TO_CAPTURE * 100) 
 				/ (CameraCalibrator::FRAMES_TO_CAPTURE + 1)) {
-				msg << "Calibrating... Wait a bit";
+				msg << "Calibrating... Wait a bit.";
 			}
 			else {
 				msg << "Nice! " << progress << "% of frames captured. Keep going.";
@@ -112,6 +129,7 @@ int main(int argc, char **argv) {
 			CameraIntrinsic intr;
 			calib.GetIntrinsic(intr);
 			msg << "Calibration complete. Have fun with the cube!";
+			useInfo << ", [d] - distortion";
 			if (!undistortionActive)
 				camStatus << "[DISTORTED] ";
 			if (undistortionActive) {
@@ -124,13 +142,7 @@ int main(int argc, char **argv) {
 				cv::Mat tansitionMatrix = intr.cameraMatrix * worldMatrix;
 				DrawAxis(frame, tansitionMatrix, 5);
 				DrawCube(frame, tansitionMatrix, cv::Point3f(0, 0, 0), 2);
-				screenshotMsg << "Press SPACEBAR to take a screenshot.";
-
-				int keyPress = cv::waitKey(30);
-				if (keyPress == 32) {
-					takeScreenshot = true;
-				}
-
+				useInfo << "Press SPACEBAR to take a screenshot.";
 			}
 		}
 		if (isMirrored) {
@@ -139,26 +151,17 @@ int main(int argc, char **argv) {
 			frame = flip;
 		}
 		msg << std::ends;
-		screenshotMsg << std::ends;
+		useInfo << std::ends;
 		camStatus << std::ends;
 		ShowMessage(frame, msg.str(), cv::Point(10, 20));
 		ShowMessage(frame, camStatus.str(), cv::Point(10, 40));
-		ShowMessage(frame, screenshotMsg.str(), cv::Point(10, 60));
+		ShowMessage(frame, useInfo.str(), cv::Point(10, frame.size().height - 10));
 		imshow(windowName, frame);
 		int key = cv::waitKey(30);
-		if (takeScreenshot) {
-			time_t seconds;
-			time(&seconds);
-			std::cout << seconds << std::endl;
-			std::stringstream ss;
-			ss << seconds;
-			std::string ts = ss.str();
-			cv::imwrite(ts + ".jpg", frame);
-
-		}
 		if (key == 27) break;
 		if (key == 100) undistortionActive = !undistortionActive;
 		if (key == 109) isMirrored = !isMirrored;
+		if (key == 115) takeScreenshot = true;
 	}
 	if (calib.GetProgress() != 100) calib.TerminateCalibration();
 	return 0;
