@@ -36,7 +36,7 @@ void GetAxisLines(const cv::Mat &camMat, const cv::Mat &worldMat,
 		axis[2].y = startFrom;
 		axis[3].y = length;
 		axis[4].z = -startFrom;
-		axis[4].z = -length;
+		axis[5].z = -length;
 		PointWithDepth axisOnScreen[6];
 		for (int i = 0; i < 6; ++i)
 			axisOnScreen[i] = PointWithDepth(axis[i], worldMat, camMat);

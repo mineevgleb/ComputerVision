@@ -32,21 +32,6 @@ int main(int argc, char **argv) {
 	for (;;)
 	{
 		cv::Mat frame = cam.GetFrame().clone();
-		if (takeScreenshot) {
-			time_t seconds;
-			time(&seconds);
-			tm *t = localtime(&seconds);
-			t->tm_year += 1900;
-			std::cout << "Screen captured: " << 
-				t->tm_mday << "." << t->tm_mon << "." << t->tm_year << " "
-				<< t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << std::endl;
-			std::stringstream screenname;
-			boost::filesystem::create_directory("Screens");
-			screenname << "Screens\\" << t->tm_mday << "." << t->tm_mon << "." << t->tm_year << " "
-				<< t->tm_hour << "-" << t->tm_min << "-" << t->tm_sec << ".jpg";
-			cv::imwrite(screenname.str(), frame);
-			takeScreenshot = false;
-		}
 		int progress = calib.GetProgress();
 		std::strstream msg;
 		std::strstream useInfo;
@@ -92,18 +77,33 @@ int main(int argc, char **argv) {
 				std::vector<CircleWithDepth> circles;
 				decomposeLines(lines, circles, frame);
 				drawCircles(circles, frame);
+
 #else
 				cv::Mat tansitionMatrix = intr.cameraMatrix * worldMatrix;
 				DrawAxis(frame, tansitionMatrix, 5);
 				DrawCube(frame, tansitionMatrix, cv::Point3f(0, 0, 0), 2);
 #endif
-				useInfo << "Press SPACEBAR to take a screenshot.";
 			}
 		}
 		if (isMirrored) {
 			cv::Mat flip;
 			cv::flip(frame, flip, 1);
 			frame = flip;
+		}
+		if (takeScreenshot) {
+			time_t seconds;
+			time(&seconds);
+			tm *t = localtime(&seconds);
+			t->tm_year += 1900;
+			std::cout << "Screen captured: " <<
+				t->tm_mday << "." << t->tm_mon << "." << t->tm_year << " "
+				<< t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << std::endl;
+			std::stringstream screenname;
+			boost::filesystem::create_directory("Screens");
+			screenname << "Screens\\" << t->tm_mday << "." << t->tm_mon << "." << t->tm_year << " "
+				<< t->tm_hour << "-" << t->tm_min << "-" << t->tm_sec << ".jpg";
+			cv::imwrite(screenname.str(), frame);
+			takeScreenshot = false;
 		}
 		msg << std::ends;
 		useInfo << std::ends;
