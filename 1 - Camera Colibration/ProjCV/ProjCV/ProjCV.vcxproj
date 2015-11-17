@@ -132,12 +132,14 @@
     <ClCompile Include="CameraCalibrator.cpp" />
     <ClCompile Include="CameraThread.cpp" />
     <ClCompile Include="CheckboardThread.cpp" />
+    <ClCompile Include="Draw.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraCalibrator.h" />
     <ClInclude Include="CameraThread.h" />
     <ClInclude Include="CheckboardThread.h" />
+    <ClInclude Include="Draw.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
