@@ -19,11 +19,43 @@ void ShowMessage(cv::Mat &img, const char *msg, cv::Point pos) {
 		0.5, cv::Scalar(50, 50, 200, 255), 1, CV_AA);
 }
 
+bool CalibrateFromFile(CameraCalibrator &calib, std::string &filename) {
+	return calib.CalibrateFromFile(filename);
+}
+
+void SaveCalibration(CameraCalibrator &calib) {
+	std::string filename;
+	std::cout << "Type a name for the calibration: ";
+	std::cin >> filename;
+	calib.SaveCalibration(filename);
+}
+
 int main(int argc, char **argv) {
 	CameraThread cam(0, true);
 	CheckboardThread chk(&cam, true);
 	CameraCalibrator calib(&chk, cam.GetFrame().size());
-	calib.Calibrate();
+	std::string filename;
+	std::string answer;
+
+	std::cout << "Would you like to start recalibration?(Yes/No): ";
+	std::cin >> answer;
+
+	while (answer != "No" && answer != "Yes") {
+		std::cout << "Please enter an appropriate answer(Yes/No): ";
+		std::cin >> answer;
+	}
+
+	if (answer == "Yes") {
+		calib.Calibrate();
+	}
+	else if (answer == "No") {
+		std::cout << "Type the name of the calibration file that you want to load(all the calibration files need to be stored in the 'Calibrations' folder of the application: ";
+		std::cin >> filename;
+		if (!CalibrateFromFile(calib, filename)) {
+			calib.Calibrate();
+		}
+	}
+
 	const char *windowName = "Calibration";
 	cv::namedWindow(windowName);
 	bool undistortionActive = true;
@@ -35,6 +67,7 @@ int main(int argc, char **argv) {
 		int progress = calib.GetProgress();
 		std::strstream msg;
 		std::strstream useInfo;
+		std::strstream useInfo2;
 		std::strstream camStatus;
 		if (isMirrored) {
 			camStatus << "[MIRRORED] ";
@@ -49,7 +82,7 @@ int main(int argc, char **argv) {
 				msg << "Calibrating... Wait a bit.";
 			}
 			else {
-				msg << "Nice! " << progress << "% of frames captured. Keep going.";
+				msg << "Nice! " << progress << "% of frames captured. Keep moving the picture for proper calibration.";
 			}
 			std::vector<cv::Point2f> c;
 			bool found = chk.GetCheckboard(c);
@@ -59,7 +92,7 @@ int main(int argc, char **argv) {
 			CameraIntrinsic intr;
 			calib.GetIntrinsic(intr);
 			msg << "Calibration complete. Have fun with the cube!";
-			useInfo << ", [d] - distortion";
+			useInfo2 << "[d] - distortion, [v] - save calibration";
 			if (!undistortionActive)
 				camStatus << "[DISTORTED] ";
 			if (undistortionActive) {
@@ -107,16 +140,19 @@ int main(int argc, char **argv) {
 		}
 		msg << std::ends;
 		useInfo << std::ends;
+		useInfo2 << std::ends;
 		camStatus << std::ends;
 		ShowMessage(frame, msg.str(), cv::Point(10, 20));
 		ShowMessage(frame, camStatus.str(), cv::Point(10, 40));
-		ShowMessage(frame, useInfo.str(), cv::Point(10, frame.size().height - 10));
+		ShowMessage(frame, useInfo.str(), cv::Point(10, frame.size().height - 30));
+		ShowMessage(frame, useInfo2.str(), cv::Point(10, frame.size().height - 10));
 		imshow(windowName, frame);
 		int key = cv::waitKey(30);
 		if (key == 27) break;
 		if (key == 100) undistortionActive = !undistortionActive;
 		if (key == 109) isMirrored = !isMirrored;
 		if (key == 115) takeScreenshot = true;
+		if (key == 118) SaveCalibration(calib);
 	}
 	if (calib.GetProgress() != 100) calib.TerminateCalibration();
 	return 0;

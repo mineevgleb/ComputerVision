@@ -38,8 +38,46 @@ void CameraCalibrator::Calibrate()
 		m_intrinsic.cameraMatrix = 
 			cv::getOptimalNewCameraMatrix(m_intrinsic.cameraMatrix, m_intrinsic.distCoeffs, m_imgSize, 0);
 		m_progress.store(100);
+
 	});
 	
+}
+
+bool CameraCalibrator::CalibrateFromFile(std::string &fileName)
+{
+	std::stringstream calibrationName;
+	calibrationName << "Calibrations\\" << fileName << ".xml";
+	cv::FileStorage fs(calibrationName.str(), cv::FileStorage::READ);
+	fs.open(calibrationName.str(), cv::FileStorage::READ);
+	if (fs.isOpened()) {
+		fs["cameraMatrix"] >> m_intrinsic.cameraMatrix;
+		fs["distCoeffs"] >> m_intrinsic.distCoeffs;
+
+		fs.release();
+		m_progress.store(100);
+
+		return true;
+	}
+	else {
+		std::cout << "Calibration filename is wrong! Recalibrating...";
+		return false;
+	}
+
+}
+
+void CameraCalibrator::SaveCalibration(std::string &fileName)
+{
+	boost::filesystem::create_directory("Calibrations");
+	std::stringstream calibrationName;
+	calibrationName << "Calibrations\\" << fileName << ".xml";
+	cv::FileStorage fs(calibrationName.str(), cv::FileStorage::WRITE);
+	fs.open(calibrationName.str(), cv::FileStorage::WRITE);
+	fs << "cameraMatrix" << m_intrinsic.cameraMatrix;
+	fs << "distCoeffs" << m_intrinsic.distCoeffs;
+	fs.release();
+
+	std::cout << "Calibration saved!";
+
 }
 
 void CameraCalibrator::TerminateCalibration()
