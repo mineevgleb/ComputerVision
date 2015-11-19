@@ -57,12 +57,14 @@ void decomposeLines(std::vector<LineWithDepth> &in, std::vector<CircleWithDepth>
 }
 
 void drawCircles(std::vector<CircleWithDepth> &in, cv::Mat &img) {
-	std::sort(in.begin(), in.end());
-	float maxd = in.begin()->p.d;
-	float mind = in.rbegin()->p.d;
-	for (CircleWithDepth &c : in) {
-		cv::Scalar currentCol = cv::Scalar(c.col * ((2 - (c.p.d - mind) / (maxd - mind))) / 2);
-		cv::circle(img, c.p.pt, c.rad, currentCol, -1);
+	if (in.size() > 0) {
+		std::sort(in.begin(), in.end());
+		float maxd = in.begin()->p.d;
+		float mind = in.rbegin()->p.d;
+		for (CircleWithDepth &c : in) {
+			cv::Scalar currentCol = cv::Scalar(c.col * ((2 - (c.p.d - mind) / (maxd - mind))) / 2);
+			cv::circle(img, c.p.pt, c.rad, currentCol, -1);
+		}
 	}
 }
 
