@@ -43,43 +43,6 @@ void CameraCalibrator::Calibrate()
 	
 }
 
-bool CameraCalibrator::CalibrateFromFile(std::string &fileName)
-{
-	std::stringstream calibrationName;
-	calibrationName << "Calibrations\\" << fileName << ".xml";
-	cv::FileStorage fs(calibrationName.str(), cv::FileStorage::READ);
-	fs.open(calibrationName.str(), cv::FileStorage::READ);
-	if (fs.isOpened()) {
-		fs["cameraMatrix"] >> m_intrinsic.cameraMatrix;
-		fs["distCoeffs"] >> m_intrinsic.distCoeffs;
-
-		fs.release();
-		m_progress.store(100);
-
-		return true;
-	}
-	else {
-		std::cout << "Calibration filename is wrong! Recalibrating...";
-		return false;
-	}
-
-}
-
-void CameraCalibrator::SaveCalibration(std::string &fileName)
-{
-	boost::filesystem::create_directory("Calibrations");
-	std::stringstream calibrationName;
-	calibrationName << "Calibrations\\" << fileName << ".xml";
-	cv::FileStorage fs(calibrationName.str(), cv::FileStorage::WRITE);
-	fs.open(calibrationName.str(), cv::FileStorage::WRITE);
-	fs << "cameraMatrix" << m_intrinsic.cameraMatrix;
-	fs << "distCoeffs" << m_intrinsic.distCoeffs;
-	fs.release();
-
-	std::cout << "Calibration saved!";
-
-}
-
 void CameraCalibrator::TerminateCalibration()
 {
 	m_calibrating = false;
@@ -119,4 +82,62 @@ bool CameraCalibrator::CalcExtrinsic(cv::Mat &out)
 	}
 	else
 		return false;
+}
+
+
+bool CameraCalibrator::ListCalibrationFiles(std::vector<std::string> &out) {
+	boost::filesystem::path dir("Calibrations");
+	bool result = false;
+	if (boost::filesystem::exists(dir))
+	{
+		if (boost::filesystem::is_directory(dir))
+		{
+			auto it = boost::filesystem::directory_iterator(dir);
+			auto end = boost::filesystem::directory_iterator();
+			for (;it != end; ++it) {
+				if (it->path().extension() == ".xml") {
+					out.push_back(it->path().filename().string());
+					result = true;
+				}
+			}
+		}
+	}
+	return result;
+}
+
+bool CameraCalibrator::CalibrateFromFile(std::string &fileName)
+{
+	std::stringstream calibrationName;
+	calibrationName << "Calibrations\\" << fileName;
+	cv::FileStorage fs(calibrationName.str(), cv::FileStorage::READ);
+	fs.open(calibrationName.str(), cv::FileStorage::READ);
+	if (fs.isOpened()) {
+		fs["cameraMatrix"] >> m_intrinsic.cameraMatrix;
+		fs["distCoeffs"] >> m_intrinsic.distCoeffs;
+
+		fs.release();
+		m_progress.store(100);
+
+		return true;
+	}
+	else {
+		std::cout << "Calibration filename is wrong! Recalibrating...";
+		return false;
+	}
+
+}
+
+void CameraCalibrator::SaveCalibration(std::string &fileName)
+{
+	boost::filesystem::create_directory("Calibrations");
+	std::stringstream calibrationName;
+	calibrationName << "Calibrations\\" << fileName << ".xml";
+	cv::FileStorage fs(calibrationName.str(), cv::FileStorage::WRITE);
+	fs.open(calibrationName.str(), cv::FileStorage::WRITE);
+	fs << "cameraMatrix" << m_intrinsic.cameraMatrix;
+	fs << "distCoeffs" << m_intrinsic.distCoeffs;
+	fs.release();
+
+	std::cout << "Calibration saved: " << fileName << ".xml\n";
+
 }

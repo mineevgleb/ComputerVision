@@ -19,15 +19,15 @@ void ShowMessage(cv::Mat &img, const char *msg, cv::Point pos) {
 		0.5, cv::Scalar(50, 50, 200, 255), 1, CV_AA);
 }
 
-bool CalibrateFromFile(CameraCalibrator &calib, std::string &filename) {
-	return calib.CalibrateFromFile(filename);
-}
-
 void SaveCalibration(CameraCalibrator &calib) {
-	std::string filename;
-	std::cout << "Type a name for the calibration: ";
-	std::cin >> filename;
-	calib.SaveCalibration(filename);
+	time_t seconds;
+	time(&seconds);
+	tm *t = localtime(&seconds);
+	t->tm_year += 1900;
+	std::stringstream calibname;
+	calibname << t->tm_mday << "." << t->tm_mon << "." << t->tm_year << " "
+		<< t->tm_hour << "-" << t->tm_min << "-" << t->tm_sec;
+	calib.SaveCalibration(calibname.str());
 }
 
 int main(int argc, char **argv) {
@@ -35,27 +35,47 @@ int main(int argc, char **argv) {
 	CheckboardThread chk(&cam, true);
 	CameraCalibrator calib(&chk, cam.GetFrame().size());
 	std::string filename;
-	std::string answer;
 
-	std::cout << "Would you like to start recalibration?(Yes/No): ";
-	std::cin >> answer;
-
-	while (answer != "No" && answer != "Yes") {
-		std::cout << "Please enter an appropriate answer(Yes/No): ";
-		std::cin >> answer;
+	char answer = 0;
+	std::vector<std::string> calibFiles;
+	if (calib.ListCalibrationFiles(calibFiles)) {
+		std::cout << "Calibration presets found. Would you like to use one of them? ([y]/[n])\n";
+		while (true) {
+			std::cin >> answer;
+			if (answer != 'n' && answer != 'N' && answer != 'y' && answer != 'Y') {
+				std::cout << "Invalid input! Press [y] to use preset or [n] to recalibrate.\n";
+			}
+			else {
+				break;
+			}
+		}
+	}
+	else {
+		answer = 'n';
 	}
 
-	if (answer == "Yes") {
+	if (answer == 'n') {
 		calib.Calibrate();
 	}
-	else if (answer == "No") {
-		std::cout << "Type the name of the calibration file that you want to load(all the calibration files need to be stored in the 'Calibrations' folder of the application: ";
-		std::cin >> filename;
-		if (!CalibrateFromFile(calib, filename)) {
+	else {
+		std::cout << "Enter the number of preset file you want to use:\n";
+		for (int i = 0; i < calibFiles.size(); ++i) {
+			std::cout << i + 1 << ":\t" << calibFiles[i] << "\n";
+		}
+		int num = 0;
+		while (true) {
+			std::cin >> num;
+			if (num < 1 || num > calibFiles.size()) {
+				std::cout << "Invalid input. Enter the number of preset file you want to use.\n";
+			}
+			else {
+				break;
+			}
+		}
+		if (!calib.CalibrateFromFile(calibFiles[num - 1])) {
 			calib.Calibrate();
 		}
 	}
-
 	const char *windowName = "Calibration";
 	cv::namedWindow(windowName);
 	bool undistortionActive = true;
@@ -89,10 +109,14 @@ int main(int argc, char **argv) {
 			cv::drawChessboardCorners(frame, cv::Size(6, 9), c, found);
 		}
 		else {
+			if (answer == 'n') {
+				SaveCalibration(calib);
+				answer = 'y';
+			}
 			CameraIntrinsic intr;
 			calib.GetIntrinsic(intr);
 			msg << "Calibration complete. Have fun with the cube!";
-			useInfo2 << "[d] - distortion, [v] - save calibration";
+			useInfo2 << "[d] - distortion";
 			if (!undistortionActive)
 				camStatus << "[DISTORTED] ";
 			if (undistortionActive) {
@@ -152,7 +176,6 @@ int main(int argc, char **argv) {
 		if (key == 100) undistortionActive = !undistortionActive;
 		if (key == 109) isMirrored = !isMirrored;
 		if (key == 115) takeScreenshot = true;
-		if (key == 118) SaveCalibration(calib);
 	}
 	if (calib.GetProgress() != 100) calib.TerminateCalibration();
 	return 0;

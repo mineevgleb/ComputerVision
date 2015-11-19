@@ -21,12 +21,14 @@ class CameraCalibrator {
 public:
 	CameraCalibrator(CheckboardThread *checkboard, cv::Size &imgSize);
 	void Calibrate();
-	bool CalibrateFromFile(std::string &fileName);
-	void SaveCalibration(std::string &fileName);
 	void TerminateCalibration();
 	int GetProgress();
 	bool GetIntrinsic(CameraIntrinsic &out);
 	bool CalcExtrinsic(cv::Mat &out);
+
+	bool ListCalibrationFiles(std::vector<std::string> &out);
+	bool CalibrateFromFile(std::string &fileName);
+	void SaveCalibration(std::string &fileName);
 
 	static const int FRAMES_TO_CAPTURE = 36;
 	static const int CAPTURE_DELAY_IN_MS = 500;
