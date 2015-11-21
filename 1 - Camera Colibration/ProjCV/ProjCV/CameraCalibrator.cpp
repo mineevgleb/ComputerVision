@@ -1,5 +1,6 @@
 #include "CameraCalibrator.h"
 
+//Constructor for CameraCalibrator class
 CameraCalibrator::CameraCalibrator(CheckboardThread *checkboard, cv::Size &imgSize) :
 	m_progress(0),
 	m_checkboard(checkboard),
@@ -14,6 +15,7 @@ CameraCalibrator::CameraCalibrator(CheckboardThread *checkboard, cv::Size &imgSi
 	m_objectPoints.resize(FRAMES_TO_CAPTURE, m_objectPoints[0]);
 }
 
+//Method that calibrates the camera based on the amount of frames; it does not use a file to calibrate
 void CameraCalibrator::Calibrate()
 {
 	m_progress = 0;
@@ -43,6 +45,7 @@ void CameraCalibrator::Calibrate()
 	
 }
 
+//Method that stops the camera calibration
 void CameraCalibrator::TerminateCalibration()
 {
 	m_calibrating = false;
@@ -50,11 +53,13 @@ void CameraCalibrator::TerminateCalibration()
 	delete m_calibThread;
 }
 
+//Method that returns the current progress of the calibration
 int CameraCalibrator::GetProgress()
 {
 	return m_progress.load();
 }
 
+//Method that gets the intrinsic values for the camera
 bool CameraCalibrator::GetIntrinsic(CameraIntrinsic &out)
 {
 	if (m_progress.load() == 100) {
@@ -65,6 +70,7 @@ bool CameraCalibrator::GetIntrinsic(CameraIntrinsic &out)
 		return false;
 }
 
+//Method that calculates the extrinisc values for the camera
 bool CameraCalibrator::CalcExtrinsic(cv::Mat &out)
 {
 	if (m_progress.load() == 100) {
@@ -84,7 +90,7 @@ bool CameraCalibrator::CalcExtrinsic(cv::Mat &out)
 		return false;
 }
 
-
+//Method that shows a list of all the current stored calibrations and returns the selected one
 bool CameraCalibrator::ListCalibrationFiles(std::vector<std::string> &out) {
 	boost::filesystem::path dir("Calibrations");
 	bool result = false;
@@ -105,6 +111,7 @@ bool CameraCalibrator::ListCalibrationFiles(std::vector<std::string> &out) {
 	return result;
 }
 
+//Method that calibrates the camera using an already stored calibration file
 bool CameraCalibrator::CalibrateFromFile(std::string &fileName)
 {
 	std::stringstream calibrationName;
@@ -127,6 +134,7 @@ bool CameraCalibrator::CalibrateFromFile(std::string &fileName)
 
 }
 
+//Method that stores current calibration to a file
 void CameraCalibrator::SaveCalibration(std::string &fileName)
 {
 	boost::filesystem::create_directory("Calibrations");

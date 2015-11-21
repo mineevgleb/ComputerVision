@@ -1,5 +1,6 @@
 #include "CameraThread.h"
 
+//Constructor for CameraTHread class
 CameraThread::CameraThread(int deviceNumber, bool run) :
 	m_capture(deviceNumber),
 	m_isRunning(run),
@@ -14,6 +15,7 @@ CameraThread::~CameraThread()
 	Stop();
 }
 
+//Method that starts the camera thread
 void CameraThread::Run()
 {
 	m_capture >> m_frame;
@@ -27,6 +29,7 @@ void CameraThread::Run()
 	}
 }
 
+//Method that stops the camera thread
 void CameraThread::Stop()
 {
 	if (m_currentThread) {
@@ -37,12 +40,14 @@ void CameraThread::Stop()
 	}
 }
 
+//Method that returns the current frame(as an opencv Mat) for the camera
 cv::Mat CameraThread::GetFrame()
 {
 	boost::shared_lock<boost::shared_mutex> lock(m_mutex);
 	return m_frame;
 }
 
+//Method that updates the frame for the camera
 void CameraThread::UpdateFrame() {
 	cv::Mat frame;
 	m_capture >> frame;

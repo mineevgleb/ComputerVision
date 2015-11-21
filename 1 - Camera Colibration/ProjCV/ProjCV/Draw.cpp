@@ -1,5 +1,6 @@
 #include "Draw.h"
 
+//Method that draws the lines for the cube in the camera frame
 void GetCubeLines(const cv::Mat &camMat, const cv::Mat &worldMat,
 	const cv::Point3f &origin, float edgeSize, cv::Scalar &col, float width, std::vector<LineWithDepth> &out) {
 	cv::Point3f cube[8];
@@ -26,6 +27,7 @@ void GetCubeLines(const cv::Mat &camMat, const cv::Mat &worldMat,
 	}
 }
 
+//Method that draws the axis line in the camera frame
 void GetAxisLines(const cv::Mat &camMat, const cv::Mat &worldMat,
 	float startFrom, float length, float width, std::vector<LineWithDepth> &out) {
 		cv::Point3f axis[6];
@@ -75,6 +77,7 @@ cv::Point2f TranslatePointToScreen(const cv::Point3f &pt, const cv::Mat &transla
 		onscreenMat.at<double>(1) / onscreenMat.at<double>(2));
 }
 
+//Method that draws a cube on screen based on the position of the checkboard
 void DrawSimpleCube(cv::Mat &frame, const cv::Mat & translationMatrix, const cv::Point3f &origin, float edgeSize)
 {
 	cv::Point3f cube[8];

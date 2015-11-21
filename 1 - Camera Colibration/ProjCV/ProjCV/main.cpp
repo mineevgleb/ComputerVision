@@ -12,6 +12,7 @@
 
 #define DRAW_COMPLEX
 
+//Method that shows a text on the screen starting from a certain position point
 void ShowMessage(cv::Mat &img, const char *msg, cv::Point pos) {
 	cv::putText(img, msg, cv::Point(pos.x + 1, pos.y + 1), CV_FONT_HERSHEY_SIMPLEX,
 		0.5, cv::Scalar(0, 0, 0, 255), 1);
@@ -19,6 +20,7 @@ void ShowMessage(cv::Mat &img, const char *msg, cv::Point pos) {
 		0.5, cv::Scalar(50, 50, 200, 255), 1, CV_AA);
 }
 
+//Method that calls the save calibration method from CameraCalibrator
 void SaveCalibration(CameraCalibrator &calib) {
 	time_t seconds;
 	time(&seconds);
@@ -30,6 +32,7 @@ void SaveCalibration(CameraCalibrator &calib) {
 	calib.SaveCalibration(calibname.str());
 }
 
+//Main method; contains logic for asking for input and a continuous loop that show the opencv output 
 int main(int argc, char **argv) {
 	CameraThread cam(0, true);
 	CheckboardThread chk(&cam, true);

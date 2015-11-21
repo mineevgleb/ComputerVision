@@ -2,6 +2,7 @@
 
 #include "CameraThread.h"
 
+//Constructor for CheckboardThread class
 CheckboardThread::CheckboardThread(CameraThread *cam, bool run) :
 	m_cam(cam),
 	m_isRunning(run),
@@ -15,6 +16,7 @@ CheckboardThread::~CheckboardThread()
 	Stop();
 }
 
+//Method that starts the checkboard calibration thread
 void CheckboardThread::Run()
 {
 	UpdateCheckboard();
@@ -28,6 +30,7 @@ void CheckboardThread::Run()
 	}
 }
 
+//Method that stops the checkboard calibration thread
 void CheckboardThread::Stop()
 {
 	if (m_currentThread) {
@@ -38,6 +41,7 @@ void CheckboardThread::Stop()
 	}
 }
 
+//Method that takes care of the detection of the checkboard and updating the variables
 void CheckboardThread::UpdateCheckboard()
 {
 	cv::Mat frame = m_cam->GetFrame();
@@ -56,6 +60,7 @@ void CheckboardThread::UpdateCheckboard()
 	m_checkboard = tmp;
 }
 
+//Method that returns the detected checkboard
 bool CheckboardThread::GetCheckboard(std::vector<cv::Point2f> &out)
 {
 	boost::shared_lock<boost::shared_mutex> lock(m_mutex);
