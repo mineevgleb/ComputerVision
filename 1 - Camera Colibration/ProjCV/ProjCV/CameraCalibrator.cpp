@@ -15,7 +15,8 @@ CameraCalibrator::CameraCalibrator(CheckboardThread *checkboard, cv::Size &imgSi
 	m_objectPoints.resize(FRAMES_TO_CAPTURE, m_objectPoints[0]);
 }
 
-//Method that calibrates the camera based on the amount of frames; it does not use a file to calibrate
+//Method for realtime camera calibration
+//Captures FRAMES_TO_CAPTURE frames with CAPTURE_DELAY_IN_MS delay between two frames
 void CameraCalibrator::Calibrate()
 {
 	m_progress = 0;
@@ -45,7 +46,8 @@ void CameraCalibrator::Calibrate()
 	
 }
 
-//Method that stops the camera calibration
+//Method that terminates the camera calibration
+//Used to prevent failure, when window is closed during the calibration. 
 void CameraCalibrator::TerminateCalibration()
 {
 	m_calibrating = false;
@@ -90,7 +92,8 @@ bool CameraCalibrator::CalcExtrinsic(cv::Mat &out)
 		return false;
 }
 
-//Method that shows a list of all the current stored calibrations and returns the selected one
+//Method that fills a vector with names of all xml files in Calibrations folder.
+//Returns true if vector is not empty.
 bool CameraCalibrator::ListCalibrationFiles(std::vector<std::string> &out) {
 	boost::filesystem::path dir("Calibrations");
 	bool result = false;
@@ -111,7 +114,7 @@ bool CameraCalibrator::ListCalibrationFiles(std::vector<std::string> &out) {
 	return result;
 }
 
-//Method that calibrates the camera using an already stored calibration file
+//Method that loads intrinsic camera parameters from clibration file
 bool CameraCalibrator::CalibrateFromFile(std::string &fileName)
 {
 	std::stringstream calibrationName;
@@ -134,7 +137,7 @@ bool CameraCalibrator::CalibrateFromFile(std::string &fileName)
 
 }
 
-//Method that stores current calibration to a file
+//Method that stores intrinsic parameters for current calibration to a file
 void CameraCalibrator::SaveCalibration(std::string &fileName)
 {
 	boost::filesystem::create_directory("Calibrations");

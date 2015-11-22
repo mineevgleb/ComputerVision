@@ -10,12 +10,13 @@ CameraThread::CameraThread(int deviceNumber, bool run) :
 	if (m_isRunning) {Run();}
 }
 
+//Destructor for CameraThread class
 CameraThread::~CameraThread()
 {
 	Stop();
 }
 
-//Method that starts the camera thread
+//Method that starts capturing images from camera
 void CameraThread::Run()
 {
 	m_capture >> m_frame;
@@ -29,7 +30,7 @@ void CameraThread::Run()
 	}
 }
 
-//Method that stops the camera thread
+//Method that stops capturing images from camera
 void CameraThread::Stop()
 {
 	if (m_currentThread) {
@@ -47,7 +48,7 @@ cv::Mat CameraThread::GetFrame()
 	return m_frame;
 }
 
-//Method that updates the frame for the camera
+//Method that updates current frame for the camera
 void CameraThread::UpdateFrame() {
 	cv::Mat frame;
 	m_capture >> frame;

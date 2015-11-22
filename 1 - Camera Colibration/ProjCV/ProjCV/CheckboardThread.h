@@ -2,7 +2,9 @@
 #include "CameraThread.h"
 #include <vector>
 
-//Class for thread safe image capturing from camera
+//Class for checkboard processing in a separate thread.
+//Checkboard processing is quite time consuming. 
+//Moving it to the separate thread allows application to run smoothly.
 class CheckboardThread {
 public:
 	CheckboardThread(CameraThread *cam, bool run);

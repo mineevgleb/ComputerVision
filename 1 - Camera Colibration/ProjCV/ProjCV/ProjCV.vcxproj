@@ -74,9 +74,9 @@
     <SourcePath>$(OPENCV_DIR)sources\modules\core\src;$(OPENCV_DIR)sources\modules\imgproc\src;$(OPENCV_DIR)sources\modules\highgui\src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>D:\Programare\Computer Vision\opencv\build\include;D:\Programare\Computer Vision\boost_1_59_0;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\Programare\Computer Vision\opencv\build\x86\vc12\lib;D:\Programare\Computer Vision\boost_1_59_0\lib32-msvc-14.0;$(LibraryPath)</LibraryPath>
-    <SourcePath>D:\Programare\Computer Vision\opencv\sources\modules\core\src;D:\Programare\Computer Vision\opencv\sources\modules\imgproc\src;D:\Programare\Computer Vision\opencv\sources\modules\highgui\src;$(SourcePath)</SourcePath>
+    <IncludePath>$(OPENCV_DIR)build\include;$(BOOST_DIR);$(IncludePath)</IncludePath>
+    <LibraryPath>$(OPENCV_DIR)build\x86\vc12\lib;$(BOOST_DIR)lib32-msvc-14.0;$(LibraryPath)</LibraryPath>
+    <SourcePath>$(OPENCV_DIR)sources\modules\core\src;$(OPENCV_DIR)sources\modules\imgproc\src;$(OPENCV_DIR)sources\modules\highgui\src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

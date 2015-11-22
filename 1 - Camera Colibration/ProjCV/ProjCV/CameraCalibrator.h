@@ -17,6 +17,7 @@ struct CameraExtrinsic {
 	cv::Mat tvec;
 };
 
+//Class, used for real-time camera calibration, as well as for saving and loading intinsic parameters.
 class CameraCalibrator {
 public:
 	CameraCalibrator(CheckboardThread *checkboard, cv::Size &imgSize);

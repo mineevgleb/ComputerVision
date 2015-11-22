@@ -1,7 +1,11 @@
 #pragma once
 #include <opencv2\opencv.hpp>
 
+//Methods, responsible for drawing cube and axis are located in Draw.h and Draw.cpp.
+
+//2D point with attached depth info.
 struct PointWithDepth {
+	//Constructor, that converts 3D point on board into 2D point on screen, with depth info attached
 	PointWithDepth(const cv::Point3f &localPt, const cv::Mat &worldMat, const cv::Mat &camMat) {
 		cv::Mat ptMat = (cv::Mat_<double>(4, 1) << localPt.x, localPt.y, localPt.z, 1);
 		cv::Mat inWorld = worldMat * ptMat;
@@ -16,6 +20,7 @@ struct PointWithDepth {
 	float d;
 };
 
+//2D line with attached depth info for both ends.
 struct LineWithDepth {
 	PointWithDepth p1;
 	PointWithDepth p2;
@@ -25,6 +30,7 @@ struct LineWithDepth {
 		p1(p1), p2(p2), col(col), width(width) {}
 };
 
+//2D circle with attached depth info.
 struct CircleWithDepth {
 	PointWithDepth p;
 	cv::Scalar col;

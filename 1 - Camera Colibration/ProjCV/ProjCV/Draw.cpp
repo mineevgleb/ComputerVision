@@ -1,6 +1,6 @@
 #include "Draw.h"
 
-//Method that draws the lines for the cube in the camera frame
+//Function that gets vector of on-screen lines with deph info, that would form a cube with specified parameters
 void GetCubeLines(const cv::Mat &camMat, const cv::Mat &worldMat,
 	const cv::Point3f &origin, float edgeSize, cv::Scalar &col, float width, std::vector<LineWithDepth> &out) {
 	cv::Point3f cube[8];
@@ -27,7 +27,7 @@ void GetCubeLines(const cv::Mat &camMat, const cv::Mat &worldMat,
 	}
 }
 
-//Method that draws the axis line in the camera frame
+//Function that gets vector of on-screen lines with deph info, that would form set of axes with specified parameters
 void GetAxisLines(const cv::Mat &camMat, const cv::Mat &worldMat,
 	float startFrom, float length, float width, std::vector<LineWithDepth> &out) {
 		cv::Point3f axis[6];
@@ -47,6 +47,9 @@ void GetAxisLines(const cv::Mat &camMat, const cv::Mat &worldMat,
 		out.push_back(LineWithDepth(axisOnScreen[4], axisOnScreen[5], cv::Scalar(255, 0, 0, 255), 2));
 }
 
+//Function, that breaks down all the lines in the vector to small circles with depth info.
+//This is required due to limited drawing capabilities on OpenCV, 
+//and allows us to draw gradient lines, and process overlaps correctly
 void decomposeLines(std::vector<LineWithDepth> &in, std::vector<CircleWithDepth> &out, cv::Mat &img) {
 	for (LineWithDepth &l : in) {
 		cv::LineIterator it(img, l.p1.pt, l.p2.pt);
@@ -58,6 +61,7 @@ void decomposeLines(std::vector<LineWithDepth> &in, std::vector<CircleWithDepth>
 	}
 }
 
+//Function that draws vector of circles. Circles with largest depth are drawn first, to provide correct overlapping.
 void drawCircles(std::vector<CircleWithDepth> &in, cv::Mat &img) {
 	if (in.size() > 0) {
 		std::sort(in.begin(), in.end());
@@ -70,6 +74,11 @@ void drawCircles(std::vector<CircleWithDepth> &in, cv::Mat &img) {
 	}
 }
 
+//Functions bellow are used for simplified drawing.
+//They were created initially, before moving to more advanced variant,
+//and remained here just for reference, or in case, that something would go wrong with advanced drawing.
+
+//Function that projects point using given matrix.
 cv::Point2f TranslatePointToScreen(const cv::Point3f &pt, const cv::Mat &translationMatrix) {
 	cv::Mat ptMat = (cv::Mat_<double>(4, 1) << pt.x, pt.y, pt.z, 1);
 	cv::Mat onscreenMat = translationMatrix * ptMat;
@@ -77,7 +86,7 @@ cv::Point2f TranslatePointToScreen(const cv::Point3f &pt, const cv::Mat &transla
 		onscreenMat.at<double>(1) / onscreenMat.at<double>(2));
 }
 
-//Method that draws a cube on screen based on the position of the checkboard
+//Function that draws a cube on screen based on the position of the checkboard
 void DrawSimpleCube(cv::Mat &frame, const cv::Mat & translationMatrix, const cv::Point3f &origin, float edgeSize)
 {
 	cv::Point3f cube[8];
@@ -104,6 +113,7 @@ void DrawSimpleCube(cv::Mat &frame, const cv::Mat & translationMatrix, const cv:
 	}
 }
 
+//Function that draws axis on screen based on the position of the checkboard
 void DrawSimpleAxis(cv::Mat &frame, const cv::Mat & translationMatrix, float len)
 {
 	cv::Point3f axis[4];

@@ -11,12 +11,14 @@ CheckboardThread::CheckboardThread(CameraThread *cam, bool run) :
 	if (m_isRunning) { Run(); }
 }
 
+//Destructor for CheckboardThread class
 CheckboardThread::~CheckboardThread()
 {
 	Stop();
 }
 
 //Method that starts the checkboard calibration thread
+//This thread recieves images from camera and tries to locate checkboard on this frames in cycle, as fast as it can. 
 void CheckboardThread::Run()
 {
 	UpdateCheckboard();
@@ -60,7 +62,7 @@ void CheckboardThread::UpdateCheckboard()
 	m_checkboard = tmp;
 }
 
-//Method that returns the detected checkboard
+//Method that tells, if checkboard was located, and, if so, returns the detected checkboard
 bool CheckboardThread::GetCheckboard(std::vector<cv::Point2f> &out)
 {
 	boost::shared_lock<boost::shared_mutex> lock(m_mutex);

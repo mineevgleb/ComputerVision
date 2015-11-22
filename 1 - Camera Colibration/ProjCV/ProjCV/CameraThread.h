@@ -4,6 +4,8 @@
 #include <atomic>
 
 //Class for thread safe image capturing from camera
+//Capturing images in separate thread allows better framerate.
+//Speed of checkboard processing not changes, but smooth camera output creates impression of better perfomence.
 class CameraThread {
 public:
 	CameraThread(int deviceNumber, bool run);
