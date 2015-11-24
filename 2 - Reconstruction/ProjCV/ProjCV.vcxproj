@@ -129,6 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CameraCalibrator.cpp" />
     <ClCompile Include="controllers\arcball.cpp" />
     <ClCompile Include="controllers\Camera.cpp" />
     <ClCompile Include="controllers\Glut.cpp" />
@@ -139,6 +140,7 @@
     <ClCompile Include="VoxelReconstruction.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CameraCalibrator.h" />
     <ClInclude Include="controllers\arcball.h" />
     <ClInclude Include="controllers\Camera.h" />
     <ClInclude Include="controllers\Glut.h" />

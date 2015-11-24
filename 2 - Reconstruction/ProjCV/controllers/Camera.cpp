@@ -30,7 +30,10 @@ using namespace cv;
 namespace nl_uu_science_gmt
 {
 
-vector<Point>* Camera::m_BoardCorners;  // marked checkerboard corners
+vector<Point>* Camera::m_BoardCorners;      // marked checkerboard corners
+Rect Camera::m_boardArea;                   // Area on the image, where checkboard is located
+vector<cv::Point>* Camera::m_BoardRulers;   // Three points, that determine sides of the checkboard
+int Camera::m_markStage;                    // Stage of checkboard markup
 
 Camera::Camera(
 		const string &dp, const string &cp, const int id) :
@@ -178,16 +181,45 @@ void Camera::onMouse(
 	case EVENT_LBUTTONDOWN:
 		if (flags == (EVENT_FLAG_LBUTTON + EVENT_FLAG_CTRLKEY))
 		{
-			if (!m_BoardCorners->empty())
-			{
-				cout << "Removed corner " << m_BoardCorners->size() << "... (use Click to add)" << endl;
-				m_BoardCorners->pop_back();
-			}
+			//if (!m_BoardCorners->empty())
+			//{
+			//	cout << "Removed corner " << m_BoardCorners->size() << "... (use Click to add)" << endl;
+			//	m_BoardCorners->pop_back();
+			//}
 		}
 		else
 		{
-			m_BoardCorners->push_back(Point(x, y));
-			cout << "Added corner " << m_BoardCorners->size() << "... (use CTRL+Click to remove)" << endl;
+			switch (m_markStage) {
+			case 0:
+				if (m_boardArea.x == 0) {
+					m_boardArea.x = x;
+					m_boardArea.y = y;
+				}
+				else {
+					m_boardArea.width = x - m_boardArea.x;
+					m_boardArea.height = y - m_boardArea.y;
+				}
+				break;
+			case 1:
+				m_BoardRulers->push_back(Point(x, y));
+				break;
+			case 2:
+				Point *minpt = nullptr;
+				float mindist = -1;
+				for (int i = 0; i < m_BoardCorners->size(); ++i) {
+					Point *pt = &(*m_BoardCorners)[i];
+					float dist = (x - pt->x) * (x - pt->x) + (y - pt->y) * (y - pt->y);
+					if (mindist < 0 || dist < mindist) {
+						mindist = dist;
+						minpt = pt;
+					}
+				}
+				minpt->x = x;
+				minpt->y = y;
+				break;
+			}
+			//m_BoardCorners->push_back(Point(x, y));
+			//cout << "Added corner " << m_BoardCorners->size() << "... (use CTRL+Click to remove)" << endl;
 		}
 		break;
 	default:
@@ -258,6 +290,9 @@ bool Camera::detExtrinsics(
 	assert(!frame.empty());
 
 	m_BoardCorners = new vector<Point>(); //A pointer because we need access to it from static function onMouse
+	m_BoardRulers = new vector<Point>();
+	m_markStage = 0;
+	m_boardArea = cv::Rect(0, 0, 0, 0);
 
 	string corners_file = data_path + General::CheckerboadCorners;
 	if (General::fexists(corners_file))
@@ -291,26 +326,82 @@ bool Camera::detExtrinsics(
 		namedWindow(MAIN_WINDOW, CV_WINDOW_KEEPRATIO);
 		setMouseCallback(MAIN_WINDOW, onMouse);
 
-		cout << "Now mark the " << board_size.area() << " interior corners of the checkerboard" << endl;
+		//cout << "Now mark the " << board_size.area() << " interior corners of the checkerboard" << endl;
+		cout << "Select checkboard area." << endl;
 		Mat canvas;
-		while ((int) m_BoardCorners->size() < board_size.area())
+		while (true)
 		{
 			canvas = frame.clone();
-
-			if (!m_BoardCorners->empty())
-			{
-				for (size_t c = 0; c < m_BoardCorners->size(); c++)
-				{
-					circle(canvas, m_BoardCorners->at(c), 4, Color_MAGENTA, 1, 8);
-					if (c > 0)
-						line(canvas, m_BoardCorners->at(c), m_BoardCorners->at(c - 1), Color_MAGENTA, 1, 8);
-				}
+			if (m_markStage > 0) {
+				Mat tmp = canvas(m_boardArea).clone();
+				resize(tmp, canvas, canvas.size());
 			}
+			switch (m_markStage) {
+				case 0:
+					if (m_boardArea.x) {
+						if (m_boardArea.width) {
+							m_markStage = 1;
+						}
+						else {
+							circle(canvas, Point(m_boardArea.x, m_boardArea.y), 4, Color_MAGENTA, 1, 8);
+						}
+					}
+					break;
+				case 1:
+					if (m_BoardRulers->size() == 5) {
+						Point2f origin = (*m_BoardRulers)[0];
+						for (int j = 0; j < board_size.height; ++j) {
+							for (int i = 0; i < board_size.width; ++i) {
+								float scaleri = ((float)i) / (board_size.width - 1);
+								float scalerj = ((float)j) / (board_size.height - 1);
+								Point2f pt1 = (*m_BoardRulers)[0] * (1 - scaleri) + (*m_BoardRulers)[1] * scaleri;
+								Point2f pt2 = (*m_BoardRulers)[2] * (1 - scaleri) + (*m_BoardRulers)[3] * scaleri;
+								m_BoardCorners->push_back(pt1 * (1 - scalerj) + pt2 * scalerj);
+							}
+						}
+						m_markStage = 2;
+					}
+					else {
+						for (Point &p : (*m_BoardRulers)) {
+							circle(canvas, p, 4, Color_MAGENTA, 1, 8);
+						}
+					}
+					break;
+				case 2: 
+					for (size_t c = 0; c < m_BoardCorners->size(); c++)
+					{
+						circle(canvas, m_BoardCorners->at(c), 4, Color_MAGENTA, 1, 8);
+						if (c > 0)
+							line(canvas, m_BoardCorners->at(c), m_BoardCorners->at(c - 1), Color_MAGENTA, 1, 8);
+					}
+					break;
+			}
+
+			//if (!m_BoardCorners->empty())
+			//{
+			//	for (size_t c = 0; c < m_BoardCorners->size(); c++)
+			//	{
+			//		circle(canvas, m_BoardCorners->at(c), 4, Color_MAGENTA, 1, 8);
+			//		if (c > 0)
+			//			line(canvas, m_BoardCorners->at(c), m_BoardCorners->at(c - 1), Color_MAGENTA, 1, 8);
+			//	}
+			//}
 
 			int key = waitKey(10);
 			if (key == 'q' || key == 'Q')
 			{
 				return false;
+			}
+			if ((key == 'e' || key == 'E') && m_markStage == 2)
+			{
+				for (Point &p : (*m_BoardCorners)) {
+					Point2f actual = p;
+					actual.x /= canvas.size().width; actual.y /= canvas.size().height;
+					actual.x *= m_boardArea.width; actual.y *= m_boardArea.height;
+					actual.x += m_boardArea.x; actual.y += m_boardArea.y;
+					p = actual;
+				}
+				break;
 			}
 			else if (key == 'c' || key == 'C')
 			{
@@ -394,7 +485,8 @@ bool Camera::detExtrinsics(
 	}
 
 	// Show the origin on the checkerboard
-	namedWindow("Origin", CV_WINDOW_KEEPRATIO);
+	namedWindow("Origin");
+	Mat tmp;
 	imshow("Origin", canvas);
 	waitKey(1000);
 

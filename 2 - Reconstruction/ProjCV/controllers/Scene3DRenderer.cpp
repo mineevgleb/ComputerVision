@@ -146,6 +146,8 @@ void Scene3DRenderer::processForeground(
 	bitwise_or(foreground, background, foreground);
 
 	// Improve the foreground image
+	namedWindow("lalala");
+	imshow("lalala", foreground);
 
 	camera->setForegroundImage(foreground);
 }
