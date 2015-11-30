@@ -145,9 +145,32 @@ void Scene3DRenderer::processForeground(
 	threshold(tmp, background, m_v_threshold, 255, CV_THRESH_BINARY);
 	bitwise_or(foreground, background, foreground);
 
+	namedWindow("none");
+	imshow("none", foreground);
+
 	// Improve the foreground image
-	namedWindow("lalala");
-	imshow("lalala", foreground);
+	int dilate_type = MORPH_ELLIPSE;
+	int dilate_size = 3;
+	int erode_type = MORPH_ELLIPSE;
+	int erode_size = 2;
+
+	Mat dilate_element = getStructuringElement(dilate_type,
+		Size(2 * dilate_size + 1, 2 * dilate_size + 1),
+		Point(dilate_size, dilate_size));
+
+	Mat erode_element = getStructuringElement(erode_type,
+		Size(2 * erode_size + 1, 2 * erode_size + 1),
+		Point(erode_size, dilate_size));
+	
+	dilate(foreground, foreground, dilate_element);
+
+	namedWindow("dilate");
+	imshow("dilate", foreground);
+
+	erode(foreground, foreground, erode_element);
+
+	namedWindow("dilate&erode");
+	imshow("dilate&erode", foreground);
 
 	camera->setForegroundImage(foreground);
 }
