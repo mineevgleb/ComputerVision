@@ -116,6 +116,24 @@ bool Scene3DRenderer::processFrame()
 	return true;
 }
 
+void CalcDiffImage(const Mat &a, const Mat &b, Mat &out) {
+	MatIterator_<char> it = out.begin<char>();
+	MatConstIterator_<Vec3b> ita = a.begin<Vec3b>();
+	MatConstIterator_<Vec3b> itb = b.begin<Vec3b>();
+	while (it != out.end<char>()) {
+		Vec3i pxA(*ita);
+		Vec3i pxB(*itb);
+		Vec3i diff = pxA - pxB;
+		double Sa = (double)pxA[1] / 255.0;
+		double Sb = (double)pxB[1] / 255.0;
+		double Ha = (double)pxA[0] / 180.0;
+		double Hb = (double)pxB[0] / 180.0;
+		double scaler = pow(min((min(Sa, Sb) * abs(Ha - Hb) + abs(Sa - Sb)), 1), 0.3);
+		*it = sqrt(pow(diff[2], 2) + pow(diff[1], 2) + pow(diff[0], 2)) * scaler;
+		++it; ++ita; ++itb;
+	}
+}
+
 /**
  * Separate the background from the foreground
  * ie.: Create an 8 bit image where only the foreground of the scene is white (255)
@@ -127,30 +145,44 @@ void Scene3DRenderer::processForeground(
 	Mat hsv_image;
 	cvtColor(camera->getFrame(), hsv_image, CV_BGR2HSV);  // from BGR to HSV color space
 
-	vector<Mat> channels;
-	split(hsv_image, channels);  // Split the HSV-channels for further analysis
+	Mat back_image;
+	merge(camera->getBgHsvChannels(), back_image);
 
-	// Background subtraction H
-	Mat tmp, foreground, background;
-	absdiff(channels[0], camera->getBgHsvChannels().at(0), tmp);
-	threshold(tmp, foreground, m_h_threshold, 255, CV_THRESH_BINARY);
+	Mat diff(back_image.rows, back_image.cols, CV_8UC1);
+	CalcDiffImage(hsv_image, back_image, diff);
 
-	// Background subtraction S
-	absdiff(channels[1], camera->getBgHsvChannels().at(1), tmp);
-	threshold(tmp, background, m_s_threshold, 255, CV_THRESH_BINARY);
-	bitwise_and(foreground, background, foreground);
-
-	// Background subtraction V
-	absdiff(channels[2], camera->getBgHsvChannels().at(2), tmp);
-	threshold(tmp, background, m_v_threshold, 255, CV_THRESH_BINARY);
-	bitwise_or(foreground, background, foreground);
+	//vector<Mat> channels;
+	//split(hsv_image, channels);  // Split the HSV-channels for further analysis
+	//
+	//
+	//// Background subtraction H
+	//Mat tmp, foreground, background;
+	//absdiff(channels[0], camera->getBgHsvChannels().at(0), tmp);
+	//threshold(tmp, foreground, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+	//
+	//
+	//// Background subtraction S
+	//absdiff(channels[1], camera->getBgHsvChannels().at(1), tmp);
+	//threshold(tmp, background, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+	//bitwise_and(foreground, background, foreground);
+	//
+	//// Background subtraction V
+	//absdiff(channels[2], camera->getBgHsvChannels().at(2), tmp);
+	//namedWindow("none1");
+	//imshow("none1", tmp);
+	//threshold(tmp, background, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+	//bitwise_or(foreground, background, foreground);
+	Mat foreground;
+	double tresh = threshold(diff, foreground, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+	threshold(diff, foreground, tresh * 0.5, 255, CV_THRESH_BINARY);
 
 	namedWindow("none");
-	imshow("none", foreground);
+	imshow("none", diff);
+
 
 	// Improve the foreground image
 	int dilate_type = MORPH_ELLIPSE;
-	int dilate_size = 3;
+	int dilate_size = 2;
 	int erode_type = MORPH_ELLIPSE;
 	int erode_size = 2;
 
@@ -162,15 +194,13 @@ void Scene3DRenderer::processForeground(
 		Size(2 * erode_size + 1, 2 * erode_size + 1),
 		Point(erode_size, dilate_size));
 	
-	dilate(foreground, foreground, dilate_element);
-
-	namedWindow("dilate");
-	imshow("dilate", foreground);
-
-	erode(foreground, foreground, erode_element);
-
-	namedWindow("dilate&erode");
-	imshow("dilate&erode", foreground);
+	//dilate(foreground, foreground, dilate_element);
+	//namedWindow("1");
+	//imshow("1", foreground);
+	
+	//erode(foreground, foreground, erode_element);
+	namedWindow("2");
+	imshow("2", foreground);
 
 	camera->setForegroundImage(foreground);
 }

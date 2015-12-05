@@ -78,6 +78,8 @@ bool Camera::initialize()
 	}
 	assert(!bg_image.empty());
 
+	m_background_image = bg_image.clone();
+
 	// Disect the background image in HSV-color space
 	Mat bg_hsv_im;
 	cvtColor(bg_image, bg_hsv_im, CV_BGR2HSV);
