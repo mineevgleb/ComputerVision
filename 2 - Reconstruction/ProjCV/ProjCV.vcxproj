@@ -70,12 +70,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(OPENCV_DIR)build\include;$(BOOST_DIR);$(IncludePath)</IncludePath>
-    <LibraryPath>$(OPENCV_DIR)build\x86\vc12\lib;$(BOOST_DIR)lib32-msvc-14.0;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(OPENCV_DIR)build\x86\vc12\lib;$(BOOST_DIR)lib32-msvc-14.0;$(ProjectDir)\lib\Dbg;$(LibraryPath)</LibraryPath>
     <SourcePath>$(OPENCV_DIR)sources\modules\core\src;$(OPENCV_DIR)sources\modules\imgproc\src;$(OPENCV_DIR)sources\modules\highgui\src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(OPENCV_DIR)build\include;$(BOOST_DIR);$(IncludePath)</IncludePath>
-    <LibraryPath>$(OPENCV_DIR)build\x86\vc12\lib;$(BOOST_DIR)lib32-msvc-14.0;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(OPENCV_DIR)build\x86\vc12\lib;$(BOOST_DIR)lib32-msvc-14.0;$(ProjectDir)\lib\Rls;$(LibraryPath)</LibraryPath>
     <SourcePath>$(OPENCV_DIR)sources\modules\core\src;$(OPENCV_DIR)sources\modules\imgproc\src;$(OPENCV_DIR)sources\modules\highgui\src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -86,7 +86,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opencv_core2411d.lib;opencv_highgui2411d.lib;opencv_imgproc2411d.lib;opencv_calib3d2411d.lib;opencv_contrib2411d.lib;OpenGL32.lib;Glu32.lib;boost_filesystem-vc140-mt-gd-1_59.lib;boost_regex-vc140-mt-gd-1_59.lib;boost_system-vc140-mt-gd-1_59.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_core2411d.lib;opencv_highgui2411d.lib;opencv_imgproc2411d.lib;opencv_calib3d2411d.lib;opencv_contrib2411d.lib;OpenGL32.lib;Glu32.lib;boost_filesystem-vc140-mt-gd-1_59.lib;boost_regex-vc140-mt-gd-1_59.lib;boost_system-vc140-mt-gd-1_59.lib;PolyVoxCore.lib;PolyVoxUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -102,16 +102,18 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)\PolyVoxCore\include;$(ProjectDir)\PolyVoxUtil\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/openmp %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;opencv_calib3d2411.lib;opencv_contrib2411.lib;OpenGL32.lib;Glu32.lib;boost_filesystem-vc140-mt-1_59.lib;boost_regex-vc140-mt-1_59.lib;boost_system-vc140-mt-1_59.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;opencv_calib3d2411.lib;opencv_contrib2411.lib;OpenGL32.lib;Glu32.lib;boost_filesystem-vc140-mt-1_59.lib;boost_regex-vc140-mt-1_59.lib;boost_system-vc140-mt-1_59.lib;PolyVoxCore.lib;PolyVoxUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

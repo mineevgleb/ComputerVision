@@ -95,7 +95,7 @@ void Reconstructor::initialize()
 
 	int z;
 	int pdone = 0;
-#pragma omp parallel for schedule(auto) private(z) shared(pdone)
+#pragma omp parallel for private(z) shared(pdone)
 	for (z = zL; z < zR; z += m_step)
 	{
 		const int zp = (z - zL) / m_step;
@@ -159,7 +159,7 @@ void Reconstructor::update()
 	std::vector<Voxel*> visible_voxels;
 
 	int v;
-#pragma omp parallel for schedule(auto) private(v) shared(visible_voxels)
+#pragma omp parallel for private(v) shared(visible_voxels)
 	for (v = 0; v < (int) m_voxels_amount; ++v)
 	{
 		int camera_counter = 0;
@@ -183,8 +183,18 @@ void Reconstructor::update()
 			visible_voxels.push_back(voxel);
 		}
 	}
-
 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
+
+	//Build surface
+	int size = m_height / m_step;
+	PolyVox::SimpleVolume<uint8_t> volData(PolyVox::Region(PolyVox::Vector3DInt32(0, 0, 0), PolyVox::Vector3DInt32(size * 2, size * 2, size)));
+
+	for (size_t v = 0; v < visible_voxels.size(); v++)
+	{
+		volData.setVoxelAt(visible_voxels[v]->x / m_step + size, visible_voxels[v]->y / m_step + size, visible_voxels[v]->z / m_step + 1, 255);
+	}
+	PolyVox::MarchingCubesSurfaceExtractor<PolyVox::SimpleVolume<uint8_t>> surfaceExtractor(&volData, volData.getEnclosingRegion(), &m_mesh);
+	surfaceExtractor.execute();
 }
 
 } /* namespace nl_uu_science_gmt */

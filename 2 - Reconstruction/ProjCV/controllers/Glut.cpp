@@ -32,6 +32,11 @@
 #include "Reconstructor.h"
 #include "Scene3DRenderer.h"
 
+#include <PolyVoxCore/CubicSurfaceExtractorWithNormals.h>
+#include <PolyVoxCore/MarchingCubesSurfaceExtractor.h>
+#include <PolyVoxCore/SurfaceMesh.h>
+#include <PolyVoxCore/SimpleVolume.h>
+
 using namespace std;
 using namespace cv;
 
@@ -39,6 +44,7 @@ namespace nl_uu_science_gmt
 {
 
 Glut* Glut::m_Glut;
+bool drawMesh = false;
 
 Glut::Glut(
 		Scene3DRenderer &s3d) :
@@ -197,6 +203,7 @@ int Glut::initializeWindows(const char* win_name)
 	}
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
@@ -241,7 +248,7 @@ void Glut::reset()
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	perspectiveGL(50, scene3d.getAspectRatio(), 1, 40000);
+	perspectiveGL(50, scene3d.getAspectRatio(), 1, 400000);
 	gluLookAt(scene3d.getArcballEye().x, scene3d.getArcballEye().y, scene3d.getArcballEye().z, scene3d.getArcballCentre().x,
 			scene3d.getArcballCentre().y, scene3d.getArcballCentre().z, scene3d.getArcballUp().x, scene3d.getArcballUp().y,
 			scene3d.getArcballUp().z);
@@ -274,6 +281,10 @@ void Glut::keyboard(
 		if (key == 'q' || key == 'Q')
 		{
 			scene3d.setQuit(true);
+		}
+		if (key == 'm' || key == 'M')
+		{
+			drawMesh = !drawMesh;
 		}
 		else if (key == 'p' || key == 'P')
 		{
@@ -847,16 +858,33 @@ void Glut::drawVoxels()
 {
 	glPushMatrix();
 
-	// apply default translation
-	glTranslatef(0, 0, 0);
-	glPointSize(2.0f);
-	glBegin(GL_POINTS);
+	if (drawMesh) {
+		int step = m_Glut->getScene3d().getReconstructor().getStep();
+		int size = m_Glut->getScene3d().getReconstructor().getSize() / step;
+		const PolyVox::SurfaceMesh<PolyVox::PositionMaterialNormal> & mesh = m_Glut->getScene3d().getReconstructor().getMesh();
+		const vector<uint32_t>& vecIndices = mesh.getIndices();
+		const vector<PolyVox::PositionMaterialNormal>& vecVertices = mesh.getVertices();
 
-	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
-	for (size_t v = 0; v < voxels.size(); v++)
-	{
-		glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
-		glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
+		glBegin(GL_TRIANGLES);
+
+		for (int i = 0; i < vecIndices.size(); ++i) {
+			float col = vecVertices[vecIndices[i]].getNormal().dot(PolyVox::Vector3DFloat(1, 0, 0)) * 0.9 + 0.3;
+			auto pos = vecVertices[vecIndices[i]].getPosition();
+			glColor4f(col, col, col, 1.0f);
+			glVertex3f((pos.getX() - size) * step, (pos.getY() - size) * step, pos.getZ() * step);
+		}
+	}
+	else {
+		glTranslatef(0, 0, 0);
+		glPointSize(2.0f);
+		glBegin(GL_POINTS);
+		
+		vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
+		for (size_t v = 0; v < voxels.size(); v++)
+		{
+			glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+			glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
+		}
 	}
 
 	glEnd();

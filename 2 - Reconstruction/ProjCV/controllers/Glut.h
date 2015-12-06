@@ -29,6 +29,7 @@ class Scene3DRenderer;
 
 class Glut
 {
+
 	Scene3DRenderer &m_scene3d;
 
 	static Glut* m_Glut;

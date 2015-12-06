@@ -14,6 +14,12 @@
 
 #include "Camera.h"
 
+#include <PolyVoxCore/CubicSurfaceExtractorWithNormals.h>
+#include <PolyVoxCore/MarchingCubesSurfaceExtractor.h>
+#include <PolyVoxCore/SurfaceMesh.h>
+#include <PolyVoxCore/SimpleVolume.h>
+
+
 namespace nl_uu_science_gmt
 {
 
@@ -44,6 +50,8 @@ private:
 
 	std::vector<Voxel*> m_voxels;           // Pointer vector to all voxels in the half-space
 	std::vector<Voxel*> m_visible_voxels;   // Pointer vector to all visible voxels
+
+	PolyVox::SurfaceMesh<PolyVox::PositionMaterialNormal> m_mesh; // mesh for drawing;
 
 	void initialize();
 
@@ -86,9 +94,19 @@ public:
 		return m_height;
 	}
 
+	int getStep() const
+	{
+		return m_step;
+	}
+
 	const cv::Size& getPlaneSize() const
 	{
 		return m_plane_size;
+	}
+
+	const PolyVox::SurfaceMesh<PolyVox::PositionMaterialNormal>& getMesh() const
+	{
+		return m_mesh;
 	}
 };
 
