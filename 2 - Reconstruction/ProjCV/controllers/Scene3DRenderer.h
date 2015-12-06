@@ -10,6 +10,7 @@
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/operations.hpp>
+#include <opencv2/video/background_segm.hpp>
 #include <vector>
 #ifdef _WIN32
 #include <Windows.h>
@@ -24,6 +25,7 @@ namespace nl_uu_science_gmt
 
 class Scene3DRenderer
 {
+
 	Reconstructor &m_reconstructor;          // Reference to Reconstructor
 	const std::vector<Camera*> &m_cameras;  // Reference to camera's vector
 	const int m_num;                        // Floor grid scale

@@ -11,6 +11,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgproc/types_c.h>
+#include <opencv2/video/background_segm.hpp>
 #include <stddef.h>
 #include <string>
 
@@ -33,8 +34,8 @@ Scene3DRenderer::Scene3DRenderer(
 				m_num(4),
 				m_sphere_radius(1850)
 {
-	m_width = 640;
-	m_height = 480;
+	m_width = 1024;
+	m_height = 1000;
 	m_quit = false;
 	m_paused = false;
 	m_rotate = false;
@@ -76,9 +77,12 @@ Scene3DRenderer::Scene3DRenderer(
 	m_pv_threshold = V;
 
 	createTrackbar("Frame", VIDEO_WINDOW, &m_current_frame, m_number_of_frames - 2);
-	createTrackbar("H", VIDEO_WINDOW, &m_h_threshold, 255);
-	createTrackbar("S", VIDEO_WINDOW, &m_s_threshold, 255);
-	createTrackbar("V", VIDEO_WINDOW, &m_v_threshold, 255);
+	//createTrackbar("H", VIDEO_WINDOW, &m_h_threshold, 255);
+	//createTrackbar("S", VIDEO_WINDOW, &m_s_threshold, 255);
+	//createTrackbar("V", VIDEO_WINDOW, &m_v_threshold, 255);
+
+
+
 
 	createFloorGrid();
 	setTopView();
@@ -175,10 +179,7 @@ void Scene3DRenderer::processForeground(
 	Mat foreground;
 	double tresh = threshold(diff, foreground, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 	threshold(diff, foreground, tresh * 0.5, 255, CV_THRESH_BINARY);
-
-	namedWindow("none");
-	imshow("none", diff);
-
+	bitwise_or(foreground, diff, foreground);
 
 	// Improve the foreground image
 	int dilate_type = MORPH_ELLIPSE;
@@ -194,13 +195,8 @@ void Scene3DRenderer::processForeground(
 		Size(2 * erode_size + 1, 2 * erode_size + 1),
 		Point(erode_size, dilate_size));
 	
-	//dilate(foreground, foreground, dilate_element);
-	//namedWindow("1");
-	//imshow("1", foreground);
-	
-	//erode(foreground, foreground, erode_element);
-	namedWindow("2");
-	imshow("2", foreground);
+	dilate(foreground, foreground, dilate_element);
+	erode(foreground, foreground, erode_element);
 
 	camera->setForegroundImage(foreground);
 }

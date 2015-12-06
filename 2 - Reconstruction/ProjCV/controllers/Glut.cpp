@@ -655,7 +655,7 @@ void Glut::update(
 	}
 
 	// Concatenate the video frame with the foreground image (of set camera)
-	if (!canvas.empty() && !foreground.empty())
+	/*if (!canvas.empty() && !foreground.empty())
 	{
 		Mat fg_im_3c;
 		cvtColor(foreground, fg_im_3c, CV_GRAY2BGR);
@@ -665,7 +665,35 @@ void Glut::update(
 	else if (!canvas.empty())
 	{
 		imshow(VIDEO_WINDOW, canvas);
-	}
+	}*/
+
+	Mat cam1, cam2, cam3, cam4;
+	Mat fo1, fo2, fo3, fo4;
+	cam1 = scene3d.getCameras()[0]->getFrame();
+	cam2 = scene3d.getCameras()[1]->getFrame();
+	cam3 = scene3d.getCameras()[2]->getFrame();
+	cam4 = scene3d.getCameras()[3]->getFrame();
+
+	fo1 = scene3d.getCameras()[0]->getForegroundImage();
+	fo2 = scene3d.getCameras()[1]->getForegroundImage();
+	fo3 = scene3d.getCameras()[2]->getForegroundImage();
+	fo4 = scene3d.getCameras()[3]->getForegroundImage();
+
+	cvtColor(fo1, fo1, CV_GRAY2BGR);
+	cvtColor(fo2, fo2, CV_GRAY2BGR);
+	cvtColor(fo3, fo3, CV_GRAY2BGR);
+	cvtColor(fo4, fo4, CV_GRAY2BGR);
+
+	hconcat(cam1, fo1, cam1);
+	hconcat(cam2, fo2, cam2);
+	hconcat(cam3, fo3, cam3);
+	hconcat(cam4, fo4, cam4);
+
+	vconcat(cam1, cam2, cam1);
+	vconcat(cam1, cam3, cam1);
+	vconcat(cam1, cam4, cam1);
+
+	imshow(VIDEO_WINDOW, cam1);
 
 	// Update the frame slider position
 	setTrackbarPos("Frame", VIDEO_WINDOW, scene3d.getCurrentFrame());

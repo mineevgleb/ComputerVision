@@ -94,6 +94,7 @@ void VoxelReconstruction::showKeys()
 	cout << "i       : Show/hide camera numbers (Linux only)" << endl;
 	cout << "o       : Show/hide origin" << endl;
 	cout << "t       : Top view" << endl;
+	cout << "m       : Apply Polygons" << endl;
 	cout << "1,2,3,4 : Switch camera #" << endl << endl;
 	cout << "Zoom with the scrollwheel while on the 3D scene" << endl;
 	cout << "Rotate the 3D scene with left click+drag" << endl << endl;
@@ -117,7 +118,7 @@ void VoxelReconstruction::run(int argc, char** argv)
 	}
 
 	destroyAllWindows();
-	namedWindow(VIDEO_WINDOW, CV_WINDOW_KEEPRATIO);
+	namedWindow(VIDEO_WINDOW, CV_WINDOW_NORMAL);
 
 	Reconstructor reconstructor(m_cam_views);
 	Scene3DRenderer scene3d(reconstructor, m_cam_views);
