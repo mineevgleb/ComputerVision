@@ -180,6 +180,7 @@ void Scene3DRenderer::processForeground(
 	double tresh = threshold(diff, foreground, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 	threshold(diff, foreground, tresh * 0.5, 255, CV_THRESH_BINARY);
 	bitwise_or(foreground, diff, foreground);
+	threshold(foreground, foreground, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 
 	// Improve the foreground image
 	int dilate_type = MORPH_ELLIPSE;
@@ -197,6 +198,7 @@ void Scene3DRenderer::processForeground(
 	
 	dilate(foreground, foreground, dilate_element);
 	erode(foreground, foreground, erode_element);
+	medianBlur(foreground, foreground, 5);
 
 	camera->setForegroundImage(foreground);
 }
