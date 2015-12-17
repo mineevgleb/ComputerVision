@@ -565,6 +565,7 @@ void Glut::display()
 		drawArcball();
 
 	drawVoxels();
+	drawTracks();
 
 	if (scene3d.isShowOrg())
 		drawWCoord();
@@ -616,23 +617,24 @@ void Glut::update(
 		// If not paused move to the next frame
 		scene3d.setCurrentFrame(scene3d.getCurrentFrame() + 1);
 	}
+	static bool isFirstFrame = true;
 	if (scene3d.getCurrentFrame() != scene3d.getPreviousFrame())
 	{
+		if (scene3d.getCurrentFrame() != scene3d.getPreviousFrame() + 1) {
+			isFirstFrame = true;
+			scene3d.getReconstructor().m_centersTracks.resize(scene3d.getCurrentFrame() - 1);
+		}
 		// If the current frame is different from the last iteration update stuff
 		scene3d.processFrame();
 		scene3d.getReconstructor().update();
+		if (isFirstFrame) {
+			scene3d.getReconstructor().markClusters(false);
+			isFirstFrame = false;
+		}
+		else {
+			scene3d.getReconstructor().markClusters(true);
+		}
 		scene3d.setPreviousFrame(scene3d.getCurrentFrame());
-	}
-	else if (scene3d.getHThreshold() != scene3d.getPHThreshold() || scene3d.getSThreshold() != scene3d.getPSThreshold()
-			|| scene3d.getVThreshold() != scene3d.getPVThreshold())
-	{
-		// Update the scene if one of the HSV sliders was moved (when the video is paused)
-		scene3d.processFrame();
-		scene3d.getReconstructor().update();
-
-		scene3d.setPHThreshold(scene3d.getHThreshold());
-		scene3d.setPSThreshold(scene3d.getSThreshold());
-		scene3d.setPVThreshold(scene3d.getVThreshold());
 	}
 
 	// Auto rotate the scene
@@ -879,6 +881,21 @@ void Glut::drawArcball()
 #endif
 }
 
+void Glut::drawTracks()
+{
+	auto tracks = m_Glut->getScene3d().getReconstructor().m_centersTracks;
+	for (int i = 0; i < 4; ++i) {
+		glBegin(GL_LINE_STRIP);
+		srand(i);
+		glColor4f((float)(rand() % 255) / 255, (float)(rand() % 255) / 255, (float)(rand() % 255) / 255, 0.5f);
+		
+		for (int j = 0; j < tracks.size(); ++j) {
+			glVertex3f(tracks[j][i].x, tracks[j][i].y, 0);
+		}
+		glEnd();
+	}
+}
+
 /**
  * Draw all visible voxels
  */
@@ -910,7 +927,8 @@ void Glut::drawVoxels()
 		vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
 		for (size_t v = 0; v < voxels.size(); v++)
 		{
-			glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+			srand(voxels[v]->label);
+			glColor4f((float)(rand() % 255) / 255, (float)(rand() % 255) / 255, (float)(rand() % 255) / 255, 0.5f);
 			glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
 		}
 	}

@@ -153,30 +153,7 @@ void Scene3DRenderer::processForeground(
 
 	Mat diff(back_image.rows, back_image.cols, CV_8UC1);
 	CalcDiffImage(hsv_image, back_image, diff);
-	namedWindow("frm");
-	imshow("frm", diff);
 
-	//vector<Mat> channels;
-	//split(hsv_image, channels);  // Split the HSV-channels for further analysis
-	//
-	//
-	//// Background subtraction H
-	//Mat tmp, foreground, background;
-	//absdiff(channels[0], camera->getBgHsvChannels().at(0), tmp);
-	//threshold(tmp, foreground, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-	//
-	//
-	//// Background subtraction S
-	//absdiff(channels[1], camera->getBgHsvChannels().at(1), tmp);
-	//threshold(tmp, background, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-	//bitwise_and(foreground, background, foreground);
-	//
-	//// Background subtraction V
-	//absdiff(channels[2], camera->getBgHsvChannels().at(2), tmp);
-	//namedWindow("none1");
-	//imshow("none1", tmp);
-	//threshold(tmp, background, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-	//bitwise_or(foreground, background, foreground);
 	Mat foreground;
 	double tresh = threshold(diff, foreground, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 	threshold(diff, foreground, tresh * 0.5, 255, CV_THRESH_BINARY);

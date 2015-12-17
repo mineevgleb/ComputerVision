@@ -36,11 +36,13 @@ public:
 		cv::Scalar color;                          // Color
 		std::vector<cv::Point> camera_projection;  // Projection location for camera[c]'s FoV (2D)
 		std::vector<int> valid_camera_projection;  // Flag if camera projection is in camera[c]'s FoV
+		int label;                                 // Label of the voxel
 	};
 
 private:
 	const std::vector<Camera*> &m_cameras;  // vector of pointers to cameras
 	const int m_height;                     // Cube half-space height from floor to ceiling
+	const int m_edge;
 	const int m_step;                       // Step size (space between voxels)
 
 	std::vector<cv::Point3f*> m_corners;    // Cube half-space corner locations
@@ -50,6 +52,8 @@ private:
 
 	std::vector<Voxel*> m_voxels;           // Pointer vector to all voxels in the half-space
 	std::vector<Voxel*> m_visible_voxels;   // Pointer vector to all visible voxels
+
+	std::vector<cv::Point2f> m_clusterCenters; // Centers for the clusters, representing persons
 
 	PolyVox::SurfaceMesh<PolyVox::PositionMaterialNormal> m_mesh; // mesh for drawing;
 
@@ -61,6 +65,8 @@ public:
 	virtual ~Reconstructor();
 
 	void update();
+
+	void markClusters(bool updateExisting);
 
 	const std::vector<Voxel*>& getVisibleVoxels() const
 	{
@@ -108,6 +114,8 @@ public:
 	{
 		return m_mesh;
 	}
+
+	std::vector<std::vector<cv::Point2f>> m_centersTracks;  // Tacks for cluster centers over the time
 };
 
 } /* namespace nl_uu_science_gmt */

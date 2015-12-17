@@ -25,11 +25,13 @@ namespace nl_uu_science_gmt
  * Constructor
  * Voxel reconstruction class
  */
-Reconstructor::Reconstructor(
+	Reconstructor::Reconstructor(
 		const vector<Camera*> &cs) :
-				m_cameras(cs),
-				m_height(2368),
-				m_step(32)
+		m_cameras(cs),
+		m_height(1792),
+		m_edge(6144),
+		m_step(32),
+		m_clusterCenters(4)
 {
 	for (size_t c = 0; c < m_cameras.size(); ++c)
 	{
@@ -39,8 +41,7 @@ Reconstructor::Reconstructor(
 			m_plane_size = m_cameras[c]->getSize();
 	}
 
-	const size_t edge = 2 * m_height;
-	m_voxels_amount = (edge / m_step) * (edge / m_step) * (m_height / m_step);
+	m_voxels_amount = (m_edge / m_step) * (m_edge / m_step) * (m_height / m_step);
 
 	initialize();
 }
@@ -66,10 +67,10 @@ Reconstructor::~Reconstructor()
 void Reconstructor::initialize()
 {
 	// Cube dimensions from [(-m_height, m_height), (-m_height, m_height), (0, m_height)]
-	const int xL = -m_height;
-	const int xR = m_height;
-	const int yL = -m_height;
-	const int yR = m_height;
+	const int xL = -m_edge / 2;
+	const int xR = m_edge / 2;
+	const int yL = -m_edge / 2;
+	const int yR = m_edge / 2;
 	const int zL = 0;
 	const int zR = m_height;
 	const int plane_y = (yR - yL) / m_step;
@@ -144,8 +145,32 @@ void Reconstructor::initialize()
 			}
 		}
 	}
-
 	cout << "done!" << endl;
+}
+
+void Reconstructor::markClusters(bool updateExisting) {
+	std::vector<cv::Point2f> points;
+	std::vector<int> labels(m_visible_voxels.size());
+	cv::Mat centers;
+	for (int i = 0; i < m_visible_voxels.size(); ++i) {
+		points.push_back(cv::Point(m_visible_voxels[i]->x, m_visible_voxels[i]->y));
+		if (updateExisting) {
+			labels[i] = m_visible_voxels[i]->label;
+		}
+	}
+	if (!updateExisting) {
+		cv::kmeans(points, 4, labels, cv::TermCriteria(TermCriteria::EPS | TermCriteria::COUNT, 10, 1.0), 4, KMEANS_PP_CENTERS, centers);
+		for (int i = 0; i < m_visible_voxels.size(); i++) {
+			m_visible_voxels[i]->label = labels[i];
+		}
+	}
+	else {
+		cv::kmeans(points, 4, labels, cv::TermCriteria(TermCriteria::EPS | TermCriteria::COUNT, 10, 1.0), 1, KMEANS_USE_INITIAL_LABELS, centers);
+	}
+	for (int i = 0; i < 4; ++i) {
+		m_clusterCenters[i] = cv::Point2i(centers.at<float>(i, 0), centers.at<float>(i, 1));
+	}
+	m_centersTracks.push_back(m_clusterCenters);
 }
 
 /**
@@ -179,6 +204,16 @@ void Reconstructor::update()
 		// If the voxel is present on all cameras
 		if (camera_counter == m_cameras.size())
 		{
+			int minLabel = 0;
+			float minDist = norm(m_clusterCenters[0] - Point2f(voxel->x, voxel->y));
+			for (int i = 1; i < 4; ++i) {
+				float dist = norm(m_clusterCenters[i] - Point2f(voxel->x, voxel->y));
+				if (dist < minDist) {
+					minLabel = i;
+					minDist = dist;
+				}
+			}
+			voxel->label = minLabel;
 #pragma omp critical //push_back is critical
 			visible_voxels.push_back(voxel);
 		}
@@ -186,12 +221,13 @@ void Reconstructor::update()
 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
 
 	//Build surface
-	int size = m_height / m_step;
-	PolyVox::SimpleVolume<uint8_t> volData(PolyVox::Region(PolyVox::Vector3DInt32(0, 0, 0), PolyVox::Vector3DInt32(size * 2, size * 2, size)));
+	int sizeh = m_height / m_step;
+	int sizew = m_edge / m_step;
+	PolyVox::SimpleVolume<uint8_t> volData(PolyVox::Region(PolyVox::Vector3DInt32(0, 0, 0), PolyVox::Vector3DInt32(sizew, sizew, sizeh)));
 
 	for (size_t v = 0; v < visible_voxels.size(); v++)
 	{
-		volData.setVoxelAt(visible_voxels[v]->x / m_step + size, visible_voxels[v]->y / m_step + size, visible_voxels[v]->z / m_step + 1, 255);
+		volData.setVoxelAt(visible_voxels[v]->x / m_step + sizew / 2, visible_voxels[v]->y / m_step + sizew / 2, visible_voxels[v]->z / m_step + 1, 255);
 	}
 	PolyVox::MarchingCubesSurfaceExtractor<PolyVox::SimpleVolume<uint8_t>> surfaceExtractor(&volData, volData.getEnclosingRegion(), &m_mesh);
 	surfaceExtractor.execute();

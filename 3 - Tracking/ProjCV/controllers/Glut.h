@@ -39,6 +39,7 @@ class Glut
 	static void drawVolume();
 	static void drawArcball();
 	static void drawVoxels();
+	static void drawTracks();
 	static void drawWCoord();
 	static void drawInfo();
 
