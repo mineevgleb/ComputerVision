@@ -40,6 +40,7 @@ class Glut
 	static void drawArcball();
 	static void drawVoxels();
 	static void drawTracks();
+	static void drawTrackImage();
 	static void drawWCoord();
 	static void drawInfo();
 

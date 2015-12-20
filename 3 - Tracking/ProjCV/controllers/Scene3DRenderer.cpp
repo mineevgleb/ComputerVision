@@ -116,6 +116,8 @@ bool Scene3DRenderer::processFrame()
 		}
 		assert(m_cameras[c] != nullptr);
 		processForeground(m_cameras[c]);
+
+		
 	}
 	return true;
 }
