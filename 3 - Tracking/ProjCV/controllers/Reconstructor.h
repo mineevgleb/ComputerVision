@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "Camera.h"
+#include "../HistModel.h"
 
 #include <PolyVoxCore/CubicSurfaceExtractorWithNormals.h>
 #include <PolyVoxCore/MarchingCubesSurfaceExtractor.h>
@@ -115,7 +116,14 @@ public:
 		return m_mesh;
 	}
 
+	void CreateColorModels(HistModel *models) const;
+
+	void DetermineLabels(int *labels) const;
+
+	void SaveColorModels() const;
+
 	std::vector<std::vector<cv::Point2f>> m_centersTracks;  // Tacks for cluster centers over the time
+	bool m_clustered;
 };
 
 } /* namespace nl_uu_science_gmt */

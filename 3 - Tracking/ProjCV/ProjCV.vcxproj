@@ -81,7 +81,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Full</Optimization>
+      <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)\PolyVoxCore\include;$(ProjectDir)\PolyVoxUtil\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -149,6 +149,7 @@
     <ClInclude Include="controllers\Glut.h" />
     <ClInclude Include="controllers\Reconstructor.h" />
     <ClInclude Include="controllers\Scene3DRenderer.h" />
+    <ClInclude Include="HistModel.h" />
     <ClInclude Include="utilities\General.h" />
     <ClInclude Include="VoxelReconstruction.h" />
   </ItemGroup>

@@ -282,6 +282,10 @@ void Glut::keyboard(
 		{
 			scene3d.setQuit(true);
 		}
+		if (key == 'l' || key == 'L')
+		{
+			scene3d.getReconstructor().SaveColorModels();
+		}
 		if (key == 'm' || key == 'M')
 		{
 			drawMesh = !drawMesh;
@@ -622,7 +626,8 @@ void Glut::update(
 	{
 		if (scene3d.getCurrentFrame() != scene3d.getPreviousFrame() + 1) {
 			isFirstFrame = true;
-			scene3d.getReconstructor().m_centersTracks.resize(scene3d.getCurrentFrame() - 1);
+			scene3d.getReconstructor().m_centersTracks.clear();
+			scene3d.getReconstructor().m_clustered = false;
 		}
 		// If the current frame is different from the last iteration update stuff
 		scene3d.processFrame();
@@ -886,8 +891,7 @@ void Glut::drawTracks()
 	auto tracks = m_Glut->getScene3d().getReconstructor().m_centersTracks;
 	for (int i = 0; i < 4; ++i) {
 		glBegin(GL_LINE_STRIP);
-		srand(i);
-		glColor4f((float)(rand() % 255) / 255, (float)(rand() % 255) / 255, (float)(rand() % 255) / 255, 0.5f);
+		glColor4f(i == 1, i == 2, i == 3, 0.5f);
 		
 		for (int j = 0; j < tracks.size(); ++j) {
 			glVertex3f(tracks[j][i].x, tracks[j][i].y, 0);
@@ -927,8 +931,8 @@ void Glut::drawVoxels()
 		vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
 		for (size_t v = 0; v < voxels.size(); v++)
 		{
-			srand(voxels[v]->label);
-			glColor4f((float)(rand() % 255) / 255, (float)(rand() % 255) / 255, (float)(rand() % 255) / 255, 0.5f);
+			glColor4f(voxels[v]->label == 1, 
+				voxels[v]->label == 2, voxels[v]->label == 3, 0.5f);
 			glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
 		}
 	}
