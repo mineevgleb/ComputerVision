@@ -911,12 +911,11 @@ void Glut::drawTracks()
 void Glut::drawTrackImage()
 {
 	//namedWindow("Display window", WINDOW_NORMAL);
-	Mat image(3000, 4000, CV_8UC3, Scalar::all(255));
+	Mat image(6656, 6656, CV_8UC3, Scalar::all(255));
 	auto tracks = m_Glut->getScene3d().getReconstructor().m_centersTracks;
+	int minX = 0;
+	int minY = 0;
 	for (int i = 0; i < 4; i++) {
-		Scalar color = Scalar((i == 3) * 255, (i == 2) * 255, (i == 1) * 255);
-		int minX = 0;
-		int minY = 0;
 		for (int k = 0; k < tracks.size(); k++) {
 			if (minX > tracks[k][i].x) {
 				minX = tracks[k][i].x;
@@ -925,7 +924,9 @@ void Glut::drawTrackImage()
 				minY = tracks[k][i].y;
 			}
 		}
-
+	}
+	for (int i = 0; i < 4; i++) {
+		Scalar color = Scalar((i == 3) * 255, (i == 2) * 255, (i == 1) * 255);
 		for (int j = 0; j < tracks.size() - 1; j++) {
 			line(image, Point(tracks[j][i].x + std::abs(minX), tracks[j][i].y + std::abs(minY)), Point(tracks[j+1][i].x + std::abs(minX), tracks[j+1][i].y + std::abs(minY)), color, 2, CV_AA);
 		}
