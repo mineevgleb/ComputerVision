@@ -899,7 +899,7 @@ void Glut::drawTracks()
 	auto tracks = m_Glut->getScene3d().getReconstructor().m_centersTracks;
 	for (int i = 0; i < 4; ++i) {
 		glBegin(GL_LINE_STRIP);
-		glColor4f(i == 1, i == 2, i == 3, 0.5f);
+		glColor4f(i == 3, i == 2, i == 1, 0.5f);
 		
 		for (int j = 0; j < tracks.size(); ++j) {
 			glVertex3f(tracks[j][i].x, tracks[j][i].y, 0);
@@ -911,11 +911,10 @@ void Glut::drawTracks()
 void Glut::drawTrackImage()
 {
 	//namedWindow("Display window", WINDOW_NORMAL);
-	RNG rng(12345);
-	Mat image = Mat::eye(3000, 4000, CV_8UC3);
+	Mat image(3000, 4000, CV_8UC3, Scalar::all(255));
 	auto tracks = m_Glut->getScene3d().getReconstructor().m_centersTracks;
 	for (int i = 0; i < 4; i++) {
-		Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+		Scalar color = Scalar((i == 3) * 255, (i == 2) * 255, (i == 1) * 255);
 		int minX = 0;
 		int minY = 0;
 		for (int k = 0; k < tracks.size(); k++) {
@@ -980,8 +979,8 @@ void Glut::drawVoxels()
 		vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
 		for (size_t v = 0; v < voxels.size(); v++)
 		{
-			glColor4f(voxels[v]->label == 1, 
-				voxels[v]->label == 2, voxels[v]->label == 3, 0.5f);
+			glColor4f(voxels[v]->label == 3, 
+				voxels[v]->label == 2, voxels[v]->label == 1, 0.5f);
 			glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
 		}
 	}
