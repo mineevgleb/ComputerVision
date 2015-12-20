@@ -36,6 +36,8 @@
 #include <PolyVoxCore/MarchingCubesSurfaceExtractor.h>
 #include <PolyVoxCore/SurfaceMesh.h>
 #include <PolyVoxCore/SimpleVolume.h>
+#include <algorithm>
+#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace cv;
@@ -604,6 +606,7 @@ void Glut::update(
 	}
 	if (scene3d.getCurrentFrame() > scene3d.getNumberOfFrames() - 2)
 	{
+		drawTrackImage();
 		// Go to the start of the video if we've moved beyond the end
 		scene3d.setCurrentFrame(0);
 		for (size_t c = 0; c < scene3d.getCameras().size(); ++c)
@@ -640,6 +643,11 @@ void Glut::update(
 			scene3d.getReconstructor().markClusters(true);
 		}
 		scene3d.setPreviousFrame(scene3d.getCurrentFrame());
+		
+	}
+
+	if (scene3d.getCurrentFrame() == scene3d.getNumberOfFrames() - 10) {
+		drawTrackImage();
 	}
 
 	// Auto rotate the scene
@@ -898,6 +906,47 @@ void Glut::drawTracks()
 		}
 		glEnd();
 	}
+}
+
+void Glut::drawTrackImage()
+{
+	//namedWindow("Display window", WINDOW_NORMAL);
+	RNG rng(12345);
+	Mat image = Mat::eye(3000, 4000, CV_8UC3);
+	auto tracks = m_Glut->getScene3d().getReconstructor().m_centersTracks;
+	for (int i = 0; i < 4; i++) {
+		Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+		int minX = 0;
+		int minY = 0;
+		for (int k = 0; k < tracks.size(); k++) {
+			if (minX > tracks[k][i].x) {
+				minX = tracks[k][i].x;
+			}
+			if (minY > tracks[k][i].y) {
+				minY = tracks[k][i].y;
+			}
+		}
+
+		for (int j = 0; j < tracks.size() - 1; j++) {
+			line(image, Point(tracks[j][i].x + std::abs(minX), tracks[j][i].y + std::abs(minY)), Point(tracks[j+1][i].x + std::abs(minX), tracks[j+1][i].y + std::abs(minY)), color, 2, CV_AA);
+		}
+		circle(image, Point(tracks[0][i].x + std::abs(minX), tracks[0][i].y + std::abs(minY)), 20, color, -1, 8, 0);
+		circle(image, Point(tracks[tracks.size() - 2][i].x + std::abs(minX), tracks[tracks.size() - 2][i].y + std::abs(minY)), 40, color, -1, 8, 0);
+		
+	}
+	//imshow("Trajectories", image);
+	time_t seconds;
+	time(&seconds);
+	tm *t = localtime(&seconds);
+	t->tm_year += 1900;
+	std::cout << "Trajectory saved: " <<
+		t->tm_mday << "." << t->tm_mon << "." << t->tm_year << " "
+		<< t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << std::endl;
+	std::stringstream screenname;
+	boost::filesystem::create_directory("Trajectories");
+	screenname << "Trajectories\\" << t->tm_mday << "." << t->tm_mon << "." << t->tm_year << " "
+		<< t->tm_hour << "-" << t->tm_min << "-" << t->tm_sec << ".jpg";
+	cv::imwrite(screenname.str(), image);
 }
 
 /**
