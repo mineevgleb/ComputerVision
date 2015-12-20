@@ -40,6 +40,7 @@ class Camera
 
 	cv::Size m_plane_size;                           // Camera's FoV size
 	long m_frame_amount;                             // Amount of frames in this camera's video
+	long m_pseudo_frame_am;
 
 	cv::Mat m_camera_matrix;                         // Camera matrix (3x3)
 	cv::Mat m_distortion_coeffs;                     // Distortion vector (5x1)

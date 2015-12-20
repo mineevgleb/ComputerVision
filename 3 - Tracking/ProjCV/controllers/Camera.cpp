@@ -95,10 +95,12 @@ bool Camera::initialize()
 	assert(m_plane_size.area() > 0);
 
 	// Get the amount of video frames
-	m_video.set(CV_CAP_PROP_POS_AVI_RATIO, 1);  // Go to the end of the video; 1 = 100%
-	m_frame_amount = (long) m_video.get(CV_CAP_PROP_POS_FRAMES);
+	m_frame_amount = (long) m_video.get(CV_CAP_PROP_FRAME_COUNT);
 	assert(m_frame_amount > 1);
-	m_video.set(CV_CAP_PROP_POS_AVI_RATIO, 0);  // Go back to the start
+
+	m_video.set(CV_CAP_PROP_POS_AVI_RATIO, 1);
+	m_pseudo_frame_am = m_video.get(CV_CAP_PROP_POS_FRAMES);
+	m_video.set(CV_CAP_PROP_POS_AVI_RATIO, 0);
 
 	m_video.release(); //Re-open the file because _video.set(CV_CAP_PROP_POS_AVI_RATIO, 1) may screw it up
 	m_video = cv::VideoCapture(m_data_path + General::VideoFile);
@@ -159,7 +161,9 @@ Mat& Camera::advanceVideoFrame()
 void Camera::setVideoFrame(
 		int frame_number)
 {
-	m_video.set(CV_CAP_PROP_POS_FRAMES, frame_number);
+	float scaler = (float)m_pseudo_frame_am / m_frame_amount;
+	int frame = (int)(frame_number * scaler);
+	m_video.set(CV_CAP_PROP_POS_FRAMES, frame);
 }
 
 /**

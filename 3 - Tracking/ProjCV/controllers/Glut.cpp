@@ -911,10 +911,11 @@ void Glut::drawTracks()
 void Glut::drawTrackImage()
 {
 	//namedWindow("Display window", WINDOW_NORMAL);
-	Mat image(6656, 6656, CV_8UC3, Scalar::all(255));
 	auto tracks = m_Glut->getScene3d().getReconstructor().m_centersTracks;
-	int minX = 0;
-	int minY = 0;
+	int minX = tracks[0][0].x;
+	int minY = tracks[0][0].y;
+	int maxX = tracks[0][0].x;
+	int maxY = tracks[0][0].y;
 	for (int i = 0; i < 4; i++) {
 		for (int k = 0; k < tracks.size(); k++) {
 			if (minX > tracks[k][i].x) {
@@ -923,15 +924,22 @@ void Glut::drawTrackImage()
 			if (minY > tracks[k][i].y) {
 				minY = tracks[k][i].y;
 			}
+			if (maxX < tracks[k][i].x) {
+				maxX = tracks[k][i].x;
+			}
+			if (maxY < tracks[k][i].y) {
+				maxY = tracks[k][i].y;
+			}
 		}
 	}
+	Mat image(maxX - minX, maxY - minY, CV_8UC3, Scalar::all(255));
 	for (int i = 0; i < 4; i++) {
-		Scalar color = Scalar((i == 3) * 255, (i == 2) * 255, (i == 1) * 255);
+		Scalar color = Scalar((i == 1) * 255, (i == 2) * 255, (i == 3) * 255);
 		for (int j = 0; j < tracks.size() - 1; j++) {
-			line(image, Point(tracks[j][i].x + std::abs(minX), tracks[j][i].y + std::abs(minY)), Point(tracks[j+1][i].x + std::abs(minX), tracks[j+1][i].y + std::abs(minY)), color, 2, CV_AA);
+			line(image, Point(tracks[j][i].x - minX , tracks[j][i].y - minY), Point(tracks[j+1][i].x - minX, tracks[j+1][i].y - minY), color, 2, CV_AA);
 		}
-		circle(image, Point(tracks[0][i].x + std::abs(minX), tracks[0][i].y + std::abs(minY)), 20, color, -1, 8, 0);
-		circle(image, Point(tracks[tracks.size() - 2][i].x + std::abs(minX), tracks[tracks.size() - 2][i].y + std::abs(minY)), 40, color, -1, 8, 0);
+		circle(image, Point(tracks[0][i].x - minX, tracks[0][i].y - minY), 20, color, -1, 8, 0);
+		circle(image, Point(tracks[tracks.size() - 2][i].x - minX, tracks[tracks.size() - 2][i].y - minY), 40, color, -1, 8, 0);
 		
 	}
 	//imshow("Trajectories", image);
@@ -946,6 +954,7 @@ void Glut::drawTrackImage()
 	boost::filesystem::create_directory("Trajectories");
 	screenname << "Trajectories\\" << t->tm_mday << "." << t->tm_mon << "." << t->tm_year << " "
 		<< t->tm_hour << "-" << t->tm_min << "-" << t->tm_sec << ".jpg";
+	flip(image, image, 0);
 	cv::imwrite(screenname.str(), image);
 }
 
